@@ -1,21 +1,84 @@
 import BaseModule from "./base.module";
-import Logger from "./logger";
 
 export default class EventManager extends BaseModule {
-  logger: Logger;
-
   constructor() {
     super();
-    this.logger = new Logger(this.constructor.name);
-    this.logger.debug("initialize event manager");
-
-    this.initialize();
   }
 
   initialize() {
     window.addEventListener("keydown", this.handleKeydown.bind(this));
     window.addEventListener("click", this.handleClick.bind(this));
     window.addEventListener("mousemove", this.handleMouseMove.bind(this));
+    window.addEventListener("dblclick", this.handleDoubleClick.bind(this));
+    window.addEventListener("mousedown", this.handleSelectStart.bind(this));
+    window.addEventListener("mouseup", this.handleSelectEnd.bind(this));
+  }
+
+  handleSelectStart(e: MouseEvent) {
+    const target = e.target as HTMLTableCellElement;
+    if (target && target.classList.contains("cell")) {
+      const cell = this.dependencies.TableManager.findCellById(
+        +(target.dataset.id as string),
+        target.dataset.type as string
+      );
+      if (cell) {
+        this.logger.debug(cell);
+        this.dependencies.TableManager.selected.push(cell);
+      } else {
+      }
+    }
+  }
+
+  handleSelectEnd(e: MouseEvent) {
+    const target = e.target as HTMLTableCellElement;
+    if (target && target.classList.contains("cell")) {
+      const cell = this.dependencies.TableManager.findCellById(
+        +(target.dataset.id as string),
+        target.dataset.type as string
+      );
+      if (cell) {
+        this.logger.debug(cell);
+        this.dependencies.TableManager.selected.push(cell);
+        this.dependencies.TableManager.highlightSelectedCells();
+      } else {
+      }
+    }
+  }
+
+  handleDoubleClick(e: MouseEvent) {
+    const target = e.target as HTMLDivElement;
+    if (target.classList.contains("cell")) {
+      function handleCellKeydown(this: EventManager, ev: KeyboardEvent) {
+        if (ev.shiftKey && ev.key === "Enter") {
+          this.logger.debug("save");
+          target.contentEditable = "false";
+          save.bind(this);
+        }
+      }
+      function handleCellInput(this: EventManager /* ev: Event */) {
+        const cell = this.dependencies.TableManager.findCellById(
+          +(target.dataset.id as string),
+          target.dataset.type as string
+        );
+        console.log(target, cell);
+        if (cell) {
+          cell.setContent(target.innerText);
+        }
+      }
+      function save(this: EventManager) {
+        target.removeEventListener("keydown", handleCellKeydown.bind(this));
+        target.removeEventListener("input", handleCellInput.bind(this));
+
+        console.log(this.dependencies.TableManager);
+        this.dependencies.TableManager.saveData();
+        this.dependencies.StorageManager.saveStorage();
+      }
+
+      target.contentEditable = "true";
+      target.focus();
+      target.addEventListener("keydown", handleCellKeydown.bind(this));
+      target.addEventListener("input", handleCellInput.bind(this));
+    }
   }
 
   handleKeydown(e: KeyboardEvent) {
@@ -43,6 +106,10 @@ export default class EventManager extends BaseModule {
       if (target.dataset.toolItemName) {
         this.dependencies.Ui.eventCommit(target.dataset);
       }
+    }
+
+    if (target && target.classList.contains("sheet")) {
+      this.dependencies.Ui.selectSheet(+(target.dataset?.sheetId || 0));
     }
   }
 

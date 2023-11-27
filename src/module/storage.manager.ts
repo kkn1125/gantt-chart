@@ -1,5 +1,4 @@
 import Sheet from "@/model/sheet";
-import Logger from "./logger";
 import BaseModule from "./base.module";
 
 export default class StorageManager extends BaseModule {
@@ -15,12 +14,8 @@ export default class StorageManager extends BaseModule {
     options: {},
   };
 
-  logger: Logger;
-
   constructor() {
     super();
-    this.logger = new Logger(this.constructor.name);
-    this.logger.debug("create storage manager");
   }
 
   getBigId() {
@@ -34,12 +29,16 @@ export default class StorageManager extends BaseModule {
     );
   }
 
+  setCurrentSheetNumber(id: number) {
+    this.sheetNumber = id;
+  }
+
   initialize() {
-    this.logger.debug("initialize storage");
+    this.logger.process("initialize storage");
     if (this.isEmpty()) {
       this.addSheet(new Sheet());
       this.saveStorage();
-      this.logger.debug("setup empty storage as object");
+      this.logger.process("setup empty storage as object");
     }
 
     this.loadStorage();
@@ -49,7 +48,7 @@ export default class StorageManager extends BaseModule {
     if (this.storages.sheets.length === 0) {
       this.addSheet(new Sheet());
     }
-    this.logger.debug("load storage");
+    this.logger.process("✨ loaded storage");
   }
 
   isEmpty() {
@@ -58,29 +57,39 @@ export default class StorageManager extends BaseModule {
   }
 
   getStorage() {
+    this.logger.debug("get storage");
     return JSON.parse(localStorage.getItem(this.STORAGE) || "{}");
   }
 
-  saveStorage() {
+  saveStorage(sheets: Sheet[] = this.storages.sheets) {
+    this.logger.debug("save storage");
     localStorage.setItem(this.STORAGE, JSON.stringify(this.storages));
+    this.storages.sheets = sheets;
     this.dependencies.Ui.render();
   }
 
   loadStorage() {
+    this.logger.debug("load storage");
     this.storages = this.getStorage();
+    this.storages.sheets = this.storages.sheets.map(
+      (sheet) => new Sheet(sheet as Sheet)
+    );
     return this.storages;
   }
 
   addSheet(data: Sheet) {
-    this.storages.sheets.push(data);
+    console.log(data)
+    this.storages.sheets.push(new Sheet(data));
     this.saveStorage();
   }
 
   findSheet(id: number) {
+    this.logger.debug("find sheet", id);
     return this.storages.sheets.find((sheet) => sheet.id === id);
   }
 
   findSheetIndex(id: number) {
+    this.logger.debug("find index sheet", id);
     return this.storages.sheets.findIndex((sheet) => sheet.id === id);
   }
 

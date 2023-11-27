@@ -7,15 +7,51 @@ export default class Logger {
     this.log = console.log.bind(
       console,
       `%c[${this.context.toUpperCase()}]`,
-      "color: skyblue"
+      `color: skyblue; padding-right: 0.5rem;`
     );
     this.debug = console.debug.bind(
       console,
       `%c[${this.context.toUpperCase()}]`,
-      "color: coral"
+      `color: coral; padding-right: 0.5rem;`
+    );
+    this.error = console.error.bind(
+      console,
+      `%c[PROCESS|${this.context.toUpperCase()}]`,
+      `color: #ef525c; padding-right: 0.5rem;`
+    );
+    this.process = console.info.bind(
+      console,
+      `%c[PROCESS|${this.context.toUpperCase()}]`,
+      `color: #6beb9a; padding-right: 0.5rem;`
     );
   }
 
-  log = console.log.bind(console, `[${this.context.toUpperCase()}]`);
-  debug = console.debug.bind(console, `[${this.context.toUpperCase()}]`);
+  setContext(context: string) {
+    this.context = context;
+    this.log = console.log.bind(
+      console,
+      `%c[${this.context.toUpperCase()}]`,
+      `color: skyblue; padding-right: 0.5rem;`
+    );
+    this.debug = console.debug.bind(
+      console,
+      `%c[${this.context.toUpperCase()}]`,
+      `color: coral; padding-right: 0.5rem;`
+    );
+    this.error = console.error.bind(
+      console,
+      `%c[PROCESS|${this.context.toUpperCase()}]`,
+      `color: #ef525c; padding-right: 0.5rem;`
+    );
+    this.process = console.info.bind(
+      console,
+      `%c[PROCESS|${this.context.toUpperCase()}]`,
+      `color: #6beb9a; padding-right: 0.5rem;`
+    );
+  }
+
+  log: (...arg: any[]) => void;
+  debug: (...arg: any[]) => void;
+  error: (...arg: any[]) => void;
+  process: (...arg: any[]) => void;
 }

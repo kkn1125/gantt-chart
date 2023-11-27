@@ -6,11 +6,27 @@
   -o-border-radius: calc($radius);
 }
 
-@mixin hover-effect {
+@mixin transform($values...) {
+  transform: $values;
+  -webkit-transform: $values;
+  -moz-transform: $values;
+  -ms-transform: $values;
+  -o-transform: $values;
+}
+
+@mixin hover-effect($color: #6c6c6c) {
   &:hover {
     cursor: pointer;
-    background-color: #6c6c6c;
+    background-color: $color;
   }
+}
+
+@mixin transition($values...) {
+  transition: $values;
+  -webkit-transition: $values;
+  -moz-transition: $values;
+  -ms-transition: $values;
+  -o-transition: $values;
 }
 
 html,
@@ -18,6 +34,7 @@ body,
 #app {
   margin: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -70,24 +87,45 @@ body {
         width: 100%;
         flex: 1;
         overflow: auto;
+
+        table {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          box-shadow: 0 0 1rem 0.5rem #56565636;
+          user-select: none;
+          @include transform(translate(-50%, -50%));
+        }
       }
       #wrap-sheets-files {
         border-top: 1px solid #565656;
-        width: 100%;
+        // width: 100%;
         overflow-x: auto;
         display: flex;
-        padding: 0 0.5rem 0.5rem 0.5rem;
+        // padding: 0 0.5rem 0.5rem 0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        padding-bottom: 0.5rem;
 
         .sheet {
+          user-select: none;
           font-size: 0.7em;
           padding: 0.5rem;
           border: 1px solid #565656;
           border-top: none;
           border-bottom-left-radius: 0.3rem;
           border-bottom-right-radius: 0.3rem;
+
+          &[current-sheet] {
+            background-color: coral;
+          }
+
+          @include transition(150ms ease-in-out);
+
           &:not(:last-of-type) {
             border-right: none;
           }
+          @include hover-effect(#56565656);
         }
       }
     }

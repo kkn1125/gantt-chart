@@ -1,27 +1,18 @@
 import DropdownMenuItem from "@/model/dropdown.menu.item";
-import Logger from "./logger";
 import BaseModule from "./base.module";
 
 export default class MenuManager extends BaseModule {
   static Item = DropdownMenuItem;
 
-  logger: Logger;
-
   constructor() {
     super();
-    this.logger = new Logger(this.constructor.name);
-    this.logger.debug("initialize menu");
   }
 
   file: DropdownMenuItem[] = [];
   tool: DropdownMenuItem[] = [];
   about: DropdownMenuItem[] = [];
 
-  addMenu(menu: DropdownMenuNames, menuItem: DropdownMenuItem) {
-    this[menu].push(menuItem);
-  }
-
-  setupMenu() {
+  initialize() {
     this.addMenu(
       "file",
       new MenuManager.Item("file", "New Sheet", () => {
@@ -62,6 +53,18 @@ export default class MenuManager extends BaseModule {
     );
     this.addMenu(
       "tool",
+      new MenuManager.Item("tool", "add:head column", () => {
+        console.log("add head column");
+      })
+    );
+    this.addMenu(
+      "tool",
+      new MenuManager.Item("tool", "add:body column", () => {
+        console.log("add body column");
+      })
+    );
+    this.addMenu(
+      "tool",
       new MenuManager.Item("tool", "table:fix", () => {
         console.log("table size fix");
       })
@@ -73,5 +76,9 @@ export default class MenuManager extends BaseModule {
         console.log("도움말 열기");
       })
     );
+  }
+
+  addMenu(menu: DropdownMenuNames, menuItem: DropdownMenuItem) {
+    this[menu].push(menuItem);
   }
 }

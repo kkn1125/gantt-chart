@@ -1,18 +1,19 @@
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
-import Logger from "./logger";
 
 export default class ToolManager extends BaseModule {
-  logger: Logger;
-
   constructor() {
     super();
-    this.logger = new Logger(this.constructor.name);
-    this.logger.debug("initialize tool");
   }
 
   createNewSheet() {
     this.dependencies.StorageManager.addSheet(new Sheet());
+  }
+
+  save() {
+    this.logger.debug("save");
+    this.dependencies.TableManager.saveData();
+    this.dependencies.StorageManager.saveStorage();
   }
 
   async requestFullScreen() {

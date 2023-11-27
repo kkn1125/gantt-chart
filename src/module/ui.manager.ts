@@ -1,14 +1,10 @@
-import DropdownMenuItem from "@/model/dropdown.menu.item";
+import { MAIN, SHEET_FILES } from "@/util/globa";
 import BaseModule from "./base.module";
-import Logger from "./logger";
 import MenuManager from "./menu.manager";
-import { MAIN } from "@/util/globa";
 
 export default class Ui extends BaseModule {
-  logger: Logger;
-
   dropdowns!: MenuManager;
-
+  currentSheet: number = 0;
   openedTool: string = "";
   dropdownHovered: boolean = false;
   dropdownOpened: boolean = false;
@@ -18,12 +14,6 @@ export default class Ui extends BaseModule {
 
   constructor() {
     super();
-    this.logger = new Logger(this.constructor.name);
-    this.logger.debug("intialize ui");
-  }
-
-  createEl(element: string) {
-    return document.createElement(element);
   }
 
   isChangedBeforeTool(toolName: string) {
@@ -89,33 +79,38 @@ export default class Ui extends BaseModule {
     this.dropdowns = this.dependencies.MenuManager;
   }
 
+  selectSheet(sheetId: number) {
+    const storageManager = this.dependencies.StorageManager;
+    // const tableManager = this.dependencies.TableManager;
+    storageManager.setCurrentSheetNumber(sheetId);
+    this.render();
+  }
+
   drawSheets() {
-    MAIN.querySelector("#wrap-sheets")?.remove();
-    MAIN.querySelector("#wrap-sheets-files")?.remove();
-
-    const sheets = this.createEl("div");
-    const sheetFiles = this.createEl("div");
-
-    sheets.id = "wrap-sheets";
-    sheetFiles.id = "wrap-sheets-files";
-
-    sheetFiles.innerHTML = this.dependencies.StorageManager.storages.sheets
+    // console.log(SHEET_FILES)
+    const storageManager = this.dependencies.StorageManager;
+    SHEET_FILES.innerHTML = storageManager.storages.sheets
       .map(
-        (sheet) =>
-          `<div class="sheet" data-sheet-id="${sheet.id}" data-sheet-name="${sheet.name}">${sheet.id}. ${sheet.name}</div>`
+        (sheet, index) =>
+          `<div class="sheet" data-sheet-id="${sheet.id}" data-sheet-name="${
+            sheet.name
+          }"${sheet.id === storageManager.sheetNumber ? "current-sheet" : ""}>${
+            sheet.id
+          }. ${sheet.name}</div>`
       )
       .join("");
 
-    MAIN.append(sheets, sheetFiles);
+    // MAIN.append(sheets, SHEET_FILES);
   }
 
   setupUi() {
     this.drawGnb();
     this.setupDropdownMenus();
-    this.drawSheets();
+    this.render();
   }
 
   render() {
+    this.dependencies.TableManager.renderer().render();
     this.drawSheets();
   }
 }
