@@ -1,6 +1,6 @@
 import Cell from "@/model/cell";
 import BaseModule from "@/module/base.module";
-import { WRAP_SHEETS } from "@/util/globa";
+import { WRAP_SHEETS } from "@/util/global";
 
 export default class TableManager extends BaseModule {
   selected: Cell[] = [];
@@ -25,12 +25,51 @@ export default class TableManager extends BaseModule {
     WRAP_SHEETS.innerHTML = "";
     WRAP_SHEETS.append(this.table);
 
-    this.loadData();
+    this.loadTable();
+    this.uploadSelected();
     this.setupHeads();
     this.setupBodies();
   }
 
+  swapSheet(sheetId: number) {
+    this.dependencies.StorageManager.setCurrentSheetNumber(sheetId);
+    this.dependencies.Ui.render();
+  }
+
+  update() {
+    this.setupTable();
+  }
+
+  hasSelected(cell: Cell) {
+    return this.selected.includes(cell);
+  }
+
+  initSelected() {
+    document.querySelectorAll(`[selected]`).forEach((cell) => {
+      cell.removeAttribute("selected");
+      const { posX, posY } = (cell as HTMLTableCellElement).dataset;
+      if (posX && posY) {
+        const cell = this.findCellByPos(+posX, +posY);
+        if (cell) {
+          cell.selected = false;
+        }
+      }
+    });
+    this.logger.check("selected", this.selected);
+  }
+
   private setupHeads() {
+    this.logger.check(
+      "check cell 1",
+      this.dependencies.StorageManager.storages.sheets[0].content.head[0][0]
+        .content
+    );
+    this.logger.check(
+      "check cell 2",
+      this.dependencies.StorageManager.storages.sheets[1].content.head[0][0]
+        .content
+    );
+
     for (let y = 0; y < this.head.length; y++) {
       for (let x = 0; x < this.head[y].length; x++) {
         this.logger.debug(x, y, "render");
@@ -54,62 +93,87 @@ export default class TableManager extends BaseModule {
     }
   }
 
-  private render() {
-    this.logger.process("render table manager");
-    this.setupTable();
-  }
-
   highlightSelectedCells() {
     const first = this.selected.at(0);
     const last = this.selected.at(-1);
+
     if (first && last) {
+      this.logger.check("selected", this.selected);
       if (first === last) {
         first.selected = true;
+        last.selected = true;
+        document
+          .querySelector(
+            `.cell[data-pos-x="${first.posX}"][data-pos-y="${first.posY}"]`
+          )
+          ?.setAttribute("selected", "");
       } else {
-        const startX = first.x;
-        const startY = first.y;
-        const endX = last.x;
-        const endY = last.y;
+        const minX = Math.min(first.posX, last.posX);
+        const maxX = Math.max(first.posX, last.posX);
+        const minY = Math.min(first.posY, last.posY);
+        const maxY = Math.max(first.posY, last.posY);
+        // selected 수정
         ([] as Cell[])
           .concat(...this.head)
           .concat(...this.body)
           .forEach((cell) => {
-            cell;
-            cell.selected = true;
+            if (
+              minY <= cell.posY &&
+              cell.posY <= maxY &&
+              minX <= cell.posX &&
+              cell.posX <= maxX
+            ) {
+              /* ... 범위 선택 시 컬러 설정 1회 적용되는 버그 이부분 문제 */
+              cell.selected = true;
+              document
+                .querySelector(
+                  `.cell[data-pos-x="${cell.posX}"][data-pos-y="${cell.posY}"]`
+                )
+                ?.setAttribute("selected", "");
+            }
           });
       }
     }
   }
 
-  saveData() {
-    const storageManager = this.dependencies.StorageManager;
-    const sheet = storageManager.findSheet(storageManager.sheetNumber);
-
+  saveTable() {
+    this.logger.process("save table", this.selected);
     this.sortingPosition();
-
-    if (sheet) {
-      this.head = this.head.map((row) => row.map((cell) => new Cell(cell)));
-      this.body = this.body.map((row) => row.map((cell) => new Cell(cell)));
-      sheet.save(this.head, this.body);
-    }
+    this.dependencies.StorageManager.saveStorage();
   }
 
-  loadData() {
+  loadTable() {
+    this.head = [];
+    this.body = [];
     const storageManager = this.dependencies.StorageManager;
-    storageManager.loadStorage();
+    // storageManager.loadStorage();
     const sheet = storageManager.findSheet(storageManager.sheetNumber);
     if (sheet) {
-      this.logger.log(sheet.content.head);
-      this.logger.log(this.head);
+      console.log("storageManager.sheetNumber", sheet);
       this.head = sheet.content.head;
       this.body = sheet.content.body;
     }
+
     this.sortingPosition();
+  }
+
+  uploadSelected() {
+    this.selected = [];
+    this.logger.process("uploadSelected", this.selected);
+    ([] as Cell[]).concat(...this.head, ...this.body).forEach((cell) => {
+      console.log("여긴가??", cell.selected);
+      if (cell.selected) {
+        console.log("uploadSelected cell", cell);
+        this.selected.push(cell);
+      }
+    });
+    this.logger.process("🛠️ uploadSelected", this.selected);
   }
 
   initialize() {
     this.logger.process("initialize table manager");
     this.setupTable();
+    // this.initSelected();
   }
 
   findCellById(id: number, type: string) {
@@ -122,14 +186,10 @@ export default class TableManager extends BaseModule {
     }
   }
 
-  findCellByPos(x: number, y: number, type: string) {
-    if (type === "th") {
-      return this.head.flat(1).find((cell) => cell.x === x && cell.y === y);
-    } else if (type === "td") {
-      return this.body.flat(1).find((cell) => cell.x === x && cell.y === y);
-    } else {
-      return undefined;
-    }
+  findCellByPos(posX: number, posY: number) {
+    return ([] as Cell[])
+      .concat(...this.head, ...this.body)
+      .find((cell) => cell.posX === posX && cell.posY === posY);
   }
 
   sortingPosition() {
@@ -159,7 +219,6 @@ export default class TableManager extends BaseModule {
       body.splice(index, 0, new Cell(body.length, y, "td", "add"));
     });
     this.sortingPosition();
-    this.dependencies.Ui.render();
   }
 
   addBeforeColumn() {
@@ -170,7 +229,6 @@ export default class TableManager extends BaseModule {
       body.unshift(new Cell(body.length, y, "td", "before"));
     });
     this.sortingPosition();
-    this.dependencies.Ui.render();
   }
 
   addAfterColumn() {
@@ -180,13 +238,6 @@ export default class TableManager extends BaseModule {
     this.body.forEach((body, y) => {
       body.push(new Cell(body.length, y, "td", "after"));
     });
-
-    this.dependencies.Ui.render();
-  }
-
-  renderer() {
-    return {
-      render: this.render.bind(this),
-    };
+    this.sortingPosition();
   }
 }

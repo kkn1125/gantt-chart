@@ -5,6 +5,7 @@ import StorageManager from "@/module/storage.manager";
 import ToolManager from "@/module/tool.manager";
 import Ui from "@/module/ui.manager";
 import TableManager from "../module/table.manager";
+import PanelManager from "@/module/panel.manager";
 
 export default class GanttChart extends BaseModule {
   ui: Ui;
@@ -12,6 +13,7 @@ export default class GanttChart extends BaseModule {
   tableManager: TableManager;
   menuManager: MenuManager;
   toolManager: ToolManager;
+  panelManager: PanelManager;
   storageManager: StorageManager;
   eventManager: EventManager;
 
@@ -25,6 +27,7 @@ export default class GanttChart extends BaseModule {
     this.tableManager = new TableManager();
     this.menuManager = new MenuManager();
     this.toolManager = new ToolManager();
+    this.panelManager = new PanelManager();
     this.storageManager = new StorageManager();
     this.eventManager = new EventManager();
 
@@ -35,6 +38,7 @@ export default class GanttChart extends BaseModule {
       this.ui,
       this.tableManager,
       this.menuManager,
+      this.panelManager,
       this.toolManager,
       this.storageManager,
     ]);
@@ -52,7 +56,20 @@ export default class GanttChart extends BaseModule {
       this.storageManager,
     ]);
 
-    this.menuManager.bulkInjection([this.toolManager, this.storageManager]);
+    this.menuManager.bulkInjection([
+      this.toolManager,
+      this.tableManager,
+      this.storageManager,
+      this.ui,
+    ]);
+
+    this.panelManager.bulkInjection([
+      this.toolManager,
+      this.tableManager,
+      this.storageManager,
+      this.menuManager,
+      this.ui,
+    ]);
 
     this.toolManager.bulkInjection([this.storageManager]);
 
@@ -65,6 +82,7 @@ export default class GanttChart extends BaseModule {
     this.setupStorage();
     this.setupTables();
     this.setupEvents();
+    this.setupPanel();
     this.setupMenu();
     this.setupUi();
 
@@ -79,6 +97,10 @@ export default class GanttChart extends BaseModule {
     this.eventManager.initialize();
   }
 
+  setupPanel() {
+    this.panelManager.initialize();
+  }
+
   setupStorage() {
     this.storageManager.initialize();
   }
@@ -88,6 +110,6 @@ export default class GanttChart extends BaseModule {
   }
 
   setupUi() {
-    this.ui.setupUi();
+    this.ui.initialize();
   }
 }

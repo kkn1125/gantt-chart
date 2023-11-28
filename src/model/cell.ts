@@ -1,6 +1,8 @@
-import { createEl } from "@/util/globa";
+import Logger from "@/module/logger";
+import { createEl } from "@/util/global";
 
 export default class Cell {
+  logger: Logger;
   static id: number = -1;
   id: number;
   x: number;
@@ -21,9 +23,11 @@ export default class Cell {
     type?: "th" | "td",
     content?: string
   ) {
+    this.logger = new Logger(this.constructor.name);
     if (xOrItem instanceof Object) {
-      const { id, x, y, content, type, style, option, posX, posY } =
+      const { id, x, y, content, type, style, option, posX, posY, selected } =
         xOrItem as CellType;
+      console.trace("style load", id, style);
       this.id = id;
       this.x = x;
       this.y = y;
@@ -33,6 +37,7 @@ export default class Cell {
       this.option = option;
       this.posX = posX;
       this.posY = posY;
+      this.selected = selected;
     } else {
       Cell.id += 1;
       this.id = Cell.id;
@@ -47,9 +52,21 @@ export default class Cell {
         this.content = content;
       }
     }
+    this.logger.process(`${this.constructor.name} ${this.id}`);
   }
 
-  load({ id, x, y, content, type, posX, posY }: CellType) {
+  load({
+    id,
+    x,
+    y,
+    content,
+    type,
+    posX,
+    posY,
+    selected,
+    style,
+    option,
+  }: CellType) {
     this.id = id;
     this.x = x;
     this.y = y;
@@ -57,6 +74,9 @@ export default class Cell {
     this.posY = posY;
     this.content = content;
     this.type = type;
+    this.selected = selected;
+    this.style = style;
+    this.option = option;
   }
 
   setContent(content: string) {
@@ -70,11 +90,16 @@ export default class Cell {
     el.dataset.x = "" + this.x;
     el.dataset.y = "" + this.y;
     el.dataset.type = this.type;
+    Object.assign(el, this.option);
+    Object.assign(el.style, this.style);
     el.innerText = this.content;
     el.classList.add("cell");
 
-    Object.assign(el, this.option);
-    Object.assign(el.style, this.style);
+    if (this.selected) {
+      el.setAttribute("selected", "");
+    }
+
+    // this.logger.check("el style", el.style.backgroundColor);
     return el;
   }
 }

@@ -29,19 +29,23 @@
   -o-transition: $values;
 }
 
+$BG_GRAY: #565656;
+$BG_DARK_GRAY: #434343;
+
 html,
 body,
 #app {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  user-select: none;
 }
 
 body {
   #menu-list {
     position: absolute;
     color: #ffffff;
-    background-color: #565656;
+    background-color: #{$BG_GRAY};
     .menu-item {
       color: inherit;
       font-weight: 700;
@@ -59,7 +63,7 @@ body {
 
     #header {
       color: #ffffff;
-      background-color: #565656;
+      background-color: #{$BG_GRAY};
 
       display: flex;
       gap: 1em;
@@ -81,51 +85,135 @@ body {
       flex: 1;
       overflow-y: auto;
       display: flex;
-      flex-direction: column;
 
-      #wrap-sheets {
-        width: 100%;
+      #board {
         flex: 1;
-        overflow: auto;
+        display: flex;
+        flex-direction: column;
 
-        table {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          box-shadow: 0 0 1rem 0.5rem #56565636;
-          user-select: none;
-          @include transform(translate(-50%, -50%));
+        #wrap-sheets {
+          width: 100%;
+          flex: 1;
+          overflow: auto;
+
+          table {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            box-shadow: 0 0 1rem 0.5rem #{$BG_GRAY}36;
+            user-select: none;
+            @include transform(translate(-50%, -50%));
+
+            .cell {
+              @include hover-effect(#83d86956);
+              &[selected] {
+                box-shadow: inset 0 0 0 999999999999px #53c63016;
+              }
+            }
+          }
+        }
+
+        #wrap-sheets-files {
+          border-top: 1px solid #{$BG_GRAY};
+          // width: 100%;
+          overflow-x: auto;
+          display: flex;
+          // padding: 0 0.5rem 0.5rem 0.5rem;
+          padding-left: 0.5rem;
+          padding-right: 0.5rem;
+          padding-bottom: 0.5rem;
+
+          .sheet {
+            user-select: none;
+            font-size: 0.7em;
+            padding: 0.5rem;
+            border: 1px solid #{$BG_GRAY};
+            border-top: none;
+            border-bottom-left-radius: 0.3rem;
+            border-bottom-right-radius: 0.3rem;
+
+            &[current-sheet] {
+              background-color: coral;
+            }
+
+            @include transition(150ms ease-in-out);
+
+            &:not(:last-of-type) {
+              border-right: none;
+            }
+            @include hover-effect(#{$BG_GRAY}56);
+          }
         }
       }
-      #wrap-sheets-files {
-        border-top: 1px solid #565656;
-        // width: 100%;
-        overflow-x: auto;
-        display: flex;
-        // padding: 0 0.5rem 0.5rem 0.5rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-        padding-bottom: 0.5rem;
 
-        .sheet {
-          user-select: none;
-          font-size: 0.7em;
-          padding: 0.5rem;
-          border: 1px solid #565656;
-          border-top: none;
-          border-bottom-left-radius: 0.3rem;
-          border-bottom-right-radius: 0.3rem;
+      #panel {
+        width: 0%;
+        background-color: #{$BG_DARK_GRAY};
+        overflow-y: auto;
 
-          &[current-sheet] {
-            background-color: coral;
+        @include transition(150ms ease-in-out);
+
+        &.open {
+          // width: 30%;
+        }
+
+        .menu-wrap {
+          color: #ffffff;
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+          padding: 1rem;
+
+          .menu-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            text-transform: uppercase;
           }
 
-          @include transition(150ms ease-in-out);
+          .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
 
-          &:not(:last-of-type) {
-            border-right: none;
+            .panel {
+              border: 1px solid #aaaaaaa6;
+              padding: 1rem;
+              @include border-radius(0.3rem);
+
+              .panel-title {
+                font-weight: 700;
+              }
+
+              .penl-tool {
+                font-size: 0.8em;
+              }
+
+              #preview-color {
+                width: 200px;
+                height: 200px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+              }
+              .palette {
+                display: flex;
+                flex-direction: column;
+
+                .rgba {
+                  position: relative;
+                  margin-left: 1em;
+                  &::before {
+                    content: attr(name);
+                    color: #ffffff;
+                    position: absolute;
+                    left: -1em;
+                    text-transform: uppercase;
+                  }
+                }
+              }
+            }
           }
-          @include hover-effect(#56565656);
         }
       }
     }
@@ -135,7 +223,7 @@ body {
       text-align: center;
       font-weight: 700;
       color: #ffffff;
-      background-color: #565656;
+      background-color: #{$BG_GRAY};
     }
   }
 }
@@ -199,4 +287,9 @@ body {
 
 .capitalize {
   text-transform: capitalize;
+}
+
+[un-touchable] {
+  user-select: none;
+  pointer-events: none;
 }

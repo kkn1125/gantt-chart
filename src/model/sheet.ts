@@ -53,8 +53,8 @@ export default class Sheet {
       this.content.body = content.body.map((row) =>
         row.map((body) => new Cell(body as unknown as CellType))
       );
-      this.logger.setContext(this.constructor.name + "|" + this.id);
-      this.logger.log(this.content.body);
+      // this.logger.setContext(this.constructor.name + "|" + this.id);
+      // this.logger.log(this.content.body);
     } else {
       Sheet.id += 1;
       this.id = Sheet.id;
@@ -73,7 +73,7 @@ export default class Sheet {
   }
 
   save(head: Cell[][], body: Cell[][]) {
-    console.log(this, this.content);
+    this.logger.debug("debug", this, this.content);
     this.content.head = head;
     this.content.body = body;
   }

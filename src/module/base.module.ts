@@ -1,3 +1,4 @@
+import { createEl } from "@/util/global";
 import Logger from "./logger";
 
 export default class BaseModule {
@@ -30,6 +31,6 @@ export default class BaseModule {
   }
 
   createEl(element: string) {
-    return document.createElement(element);
+    return createEl(element);
   }
 }

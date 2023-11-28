@@ -2,7 +2,7 @@ import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
 
 export default class StorageManager extends BaseModule {
-  private readonly STORAGE = "gantt-store";
+  /* private */ readonly STORAGE = "gantt-store";
 
   sheetNumber: number = 0;
 
@@ -30,6 +30,7 @@ export default class StorageManager extends BaseModule {
   }
 
   setCurrentSheetNumber(id: number) {
+    // this.logger.debug("test", id);
     this.sheetNumber = id;
   }
 
@@ -62,23 +63,25 @@ export default class StorageManager extends BaseModule {
   }
 
   saveStorage(sheets: Sheet[] = this.storages.sheets) {
-    this.logger.debug("save storage");
+    this.logger.debug("save storage", sheets);
     localStorage.setItem(this.STORAGE, JSON.stringify(this.storages));
-    this.storages.sheets = sheets;
-    this.dependencies.Ui.render();
   }
 
   loadStorage() {
-    this.logger.debug("load storage");
+    this.logger.debug("load storage", this.storages);
+    this.logger.debug("load storage", localStorage.getItem(this.STORAGE));
     this.storages = this.getStorage();
+    console.log("this.storages", this.storages);
+    this.logger.debug("this.storages", localStorage.getItem(this.STORAGE));
     this.storages.sheets = this.storages.sheets.map(
       (sheet) => new Sheet(sheet as Sheet)
     );
+
     return this.storages;
   }
 
   addSheet(data: Sheet) {
-    console.log(data)
+    console.log(data);
     this.storages.sheets.push(new Sheet(data));
     this.saveStorage();
   }

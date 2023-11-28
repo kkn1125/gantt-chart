@@ -1,5 +1,6 @@
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
+import { APP } from "@/util/global";
 
 export default class ToolManager extends BaseModule {
   constructor() {
@@ -12,8 +13,8 @@ export default class ToolManager extends BaseModule {
 
   save() {
     this.logger.debug("save");
-    this.dependencies.TableManager.saveData();
-    this.dependencies.StorageManager.saveStorage();
+    this.dependencies.TableManager.saveTable();
+    // this.dependencies.StorageManager.saveStorage();
   }
 
   async requestFullScreen() {

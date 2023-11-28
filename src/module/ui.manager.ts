@@ -1,6 +1,13 @@
-import { MAIN, SHEET_FILES } from "@/util/globa";
+import { BOARD, PANEL, SHEET_FILES } from "@/util/global";
 import BaseModule from "./base.module";
 import MenuManager from "./menu.manager";
+
+interface CustomElement extends HTMLDivElement {
+  custom: {
+    x: number;
+    y: number;
+  };
+}
 
 export default class Ui extends BaseModule {
   dropdowns!: MenuManager;
@@ -8,12 +15,13 @@ export default class Ui extends BaseModule {
   openedTool: string = "";
   dropdownHovered: boolean = false;
   dropdownOpened: boolean = false;
-
-  private readonly HEADER = document.querySelector("#header") as HTMLDivElement;
-  private readonly MENU = document.querySelector("#menu") as HTMLDivElement;
+  dragUiActivate: boolean = false;
+  dragAreaUi: CustomElement = this.createEl("div") as CustomElement;
 
   constructor() {
     super();
+    this.dragAreaUi.setAttribute("un-touchable", "");
+    BOARD.append(this.dragAreaUi);
   }
 
   isChangedBeforeTool(toolName: string) {
@@ -47,8 +55,6 @@ export default class Ui extends BaseModule {
     subToolName?: string
   ) {
     if (!this.dropdownHovered || !toolName) return;
-    // const target = e.target as HTMLDivElement;
-    // const tool = target.dataset.tool;
     const el = document.querySelector(
       `[data-tool="${toolName}"]`
     ) as HTMLDivElement;
@@ -68,27 +74,20 @@ export default class Ui extends BaseModule {
     this.openedTool = toolName;
   }
 
-  drawGnb() {
-    this.MENU.innerHTML = `
-      <div class="tab small fw-bold capitalize" data-tool="file">file</div>
-      <div class="tab small fw-bold capitalize" data-tool="tool">tool</div>
-      <div class="tab small fw-bold capitalize" data-tool="about">about</div>`;
-  }
-
   setupDropdownMenus() {
     this.dropdowns = this.dependencies.MenuManager;
   }
 
-  selectSheet(sheetId: number) {
-    const storageManager = this.dependencies.StorageManager;
-    // const tableManager = this.dependencies.TableManager;
-    storageManager.setCurrentSheetNumber(sheetId);
-    this.render();
-  }
+  // selectSheet(sheetId: number) {
+  //   const storageManager = this.dependencies.StorageManager;
+  //   storageManager.setCurrentSheetNumber(sheetId);
+  //   this.render();
+  // }
 
   drawSheets() {
-    // console.log(SHEET_FILES)
     const storageManager = this.dependencies.StorageManager;
+    console.log("storageManager.sheetNumber", storageManager.sheetNumber);
+    console.log("storageManager.sheetNumber", storageManager.storages.sheets);
     SHEET_FILES.innerHTML = storageManager.storages.sheets
       .map(
         (sheet, index) =>
@@ -99,18 +98,115 @@ export default class Ui extends BaseModule {
           }. ${sheet.name}</div>`
       )
       .join("");
-
-    // MAIN.append(sheets, SHEET_FILES);
   }
 
-  setupUi() {
-    this.drawGnb();
+  initialize() {
     this.setupDropdownMenus();
+    this.dropdowns.render();
     this.render();
   }
 
+  startDrawDragRect(e: MouseEvent) {
+    const startPointX = e.clientX;
+    const startPointY = e.clientY;
+
+    this.dragUiActivate = true;
+    this.dragAreaUi["custom"] = {
+      x: startPointX,
+      y: startPointY,
+    };
+    this.dragAreaUi.style.position = "fixed";
+    this.dragAreaUi.style.top = startPointY + "px";
+    this.dragAreaUi.style.left = startPointX + "px";
+    this.dragAreaUi.style.transformOrigin = "top left";
+
+    this.logger.debug(`Start DragRect: ${startPointX} ${startPointY}`);
+  }
+
+  movingDrawDragRect(e: MouseEvent) {
+    if (!this.dragUiActivate) return;
+
+    const leftColor = "#b8e24f";
+    const rightColor = "#598de8";
+    const leftBorder = (type = "solid") => `1px ${type} ${leftColor}`;
+    const rightBorder = (type = "solid") => `1px ${type} ${rightColor}`;
+    const movePointX = e.clientX - this.dragAreaUi.custom.x;
+    const movePointY = e.clientY - this.dragAreaUi.custom.y;
+    let valueX = movePointX;
+    let valueY = movePointY;
+
+    if (movePointX < 0 && movePointY >= 0) {
+      this.dragAreaUi.style.transform = "scale(-1, 1)";
+      this.dragAreaUi.style.backgroundColor = leftColor + 56;
+      this.dragAreaUi.style.border = leftBorder();
+      this.dragAreaUi.style.backgroundImage = "";
+      valueX *= -1;
+      valueY *= 1;
+    } else if (movePointX >= 0 && movePointY >= 0) {
+      this.dragAreaUi.style.transform = "scale(1, 1)";
+      this.dragAreaUi.style.backgroundColor = rightColor + 56;
+      this.dragAreaUi.style.border = rightBorder();
+      this.dragAreaUi.style.backgroundImage = "";
+      valueX *= 1;
+      valueY *= 1;
+    } else if (movePointX >= 0 && movePointY < 0) {
+      this.dragAreaUi.style.transform = "scale(1, -1)";
+      this.dragAreaUi.style.backgroundColor = rightColor + 56;
+      this.dragAreaUi.style.border = "";
+      this.dragAreaUi.style.backgroundImage = `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23598DE8FF' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e")`;
+      valueX *= 1;
+      valueY *= -1;
+    } else if (movePointX < 0 && movePointY < 0) {
+      this.dragAreaUi.style.transform = "scale(-1, -1)";
+      this.dragAreaUi.style.backgroundColor = leftColor + 56;
+      this.dragAreaUi.style.border = "";
+      this.dragAreaUi.style.backgroundImage = `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23B8E24FFF' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e")`;
+      valueX *= -1;
+      valueY *= -1;
+    }
+
+    this.dragAreaUi.style.width = valueX + "px";
+    this.dragAreaUi.style.height = valueY + "px";
+
+    this.logger.debug(`Move DragRect: ${movePointX} ${movePointY}`);
+  }
+
+  endDrawDragRect(e: MouseEvent) {
+    this.dragAreaUi.style.position = "";
+    this.dragAreaUi.style.top = "";
+    this.dragAreaUi.style.left = "";
+    this.dragAreaUi.style.backgroundColor = "";
+    this.dragAreaUi.style.width = "";
+    this.dragAreaUi.style.height = "";
+    this.dragAreaUi.style.transformOrigin = "";
+    this.dragAreaUi.style.transform = "";
+    this.dragAreaUi.style.border = "";
+    this.dragAreaUi.style.backgroundImage = "";
+
+    this.dragUiActivate = false;
+    const endPointX = e.clientX;
+    const endPointY = e.clientY;
+    this.logger.debug(`End DragRect: ${endPointX} ${endPointY}`);
+  }
+
+  openPanel(width: number | string) {
+    PANEL.classList.add("open");
+    const isStringDigit = typeof width === "string" && width.match(/^\d+$/);
+    const isNumber = !isNaN(+width);
+    if (isStringDigit || isNumber) {
+      PANEL.style.width = width + "px";
+    } else {
+      PANEL.style.width = width as string;
+    }
+  }
+
+  closePanel() {
+    PANEL.classList.remove("open");
+    PANEL.style.width = "";
+  }
+
   render() {
-    this.dependencies.TableManager.renderer().render();
+    this.dependencies.TableManager.update();
     this.drawSheets();
   }
 }
