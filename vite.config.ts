@@ -20,7 +20,7 @@ export default defineConfig(({ command, mode }) => {
       host,
       port,
     },
-    base: "./",
+    base: process.env.NODE_ENV === 'development' ? "./": '/gantt-chart/',
     resolve: {
       alias: [{ find: "@", replacement: path.join(path.resolve(), "src") }],
     },
