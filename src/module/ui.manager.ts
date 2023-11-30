@@ -49,11 +49,7 @@ export default class Ui extends BaseModule {
     this.dropdownOpened = false;
   }
 
-  dropdownOpen(
-    e: MouseEvent,
-    toolName: DropdownMenuNames,
-    subToolName?: string
-  ) {
+  dropdownOpen(toolName: DropdownMenuNames) {
     if (!this.dropdownHovered || !toolName) return;
     const el = document.querySelector(
       `[data-tool="${toolName}"]`
@@ -78,19 +74,11 @@ export default class Ui extends BaseModule {
     this.dropdowns = this.dependencies.MenuManager;
   }
 
-  // selectSheet(sheetId: number) {
-  //   const storageManager = this.dependencies.StorageManager;
-  //   storageManager.setCurrentSheetNumber(sheetId);
-  //   this.render();
-  // }
-
   drawSheets() {
     const storageManager = this.dependencies.StorageManager;
-    console.log("storageManager.sheetNumber", storageManager.sheetNumber);
-    console.log("storageManager.sheetNumber", storageManager.storages.sheets);
     SHEET_FILES.innerHTML = storageManager.storages.sheets
       .map(
-        (sheet, index) =>
+        (sheet) =>
           `<div class="sheet" data-sheet-id="${sheet.id}" data-sheet-name="${
             sheet.name
           }"${sheet.id === storageManager.sheetNumber ? "current-sheet" : ""}>${
@@ -167,8 +155,6 @@ export default class Ui extends BaseModule {
 
     this.dragAreaUi.style.width = valueX + "px";
     this.dragAreaUi.style.height = valueY + "px";
-
-    this.logger.debug(`Move DragRect: ${movePointX} ${movePointY}`);
   }
 
   endDrawDragRect(e: MouseEvent) {
@@ -203,6 +189,37 @@ export default class Ui extends BaseModule {
   closePanel() {
     PANEL.classList.remove("open");
     PANEL.style.width = "";
+  }
+
+  openSheetTool(target: HTMLDivElement) {
+    const sheetTool = this.createEl("div");
+    sheetTool.id = "sheet-tool";
+    sheetTool.dataset.sheetId = "" + target.dataset.sheetId;
+    sheetTool.innerHTML = `
+      <div class="sheet-menu-list">
+        <div class="sheet-menu" data-sheet-id="${target.dataset.sheetId}" data-sheet-feat="rename">rename</div>
+        <div class="sheet-menu" data-sheet-id="${target.dataset.sheetId}" data-sheet-feat="remove">remove</div>
+        <div class="sheet-menu" data-sheet-id="${target.dataset.sheetId}" data-sheet-feat="move-left">move left</div>
+        <div class="sheet-menu" data-sheet-id="${target.dataset.sheetId}" data-sheet-feat="move-right">move right</div>
+      </div>
+    `;
+    const { left } = target.getBoundingClientRect();
+    sheetTool.style.bottom =
+      innerHeight - BOARD.clientHeight - 44 + 38.67 + "px";
+    sheetTool.style.left = left + "px";
+    BOARD.append(sheetTool);
+  }
+
+  closeSheetTool() {
+    document.querySelectorAll("#sheet-tool").forEach((el) => {
+      el.remove();
+    });
+  }
+
+  runSheetTool(feature: string, sheetId: number) {
+    if (feature === "remove") {
+      this.dependencies.ToolManager.sheetToolRemove(sheetId);
+    }
   }
 
   render() {

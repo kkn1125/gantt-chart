@@ -15,19 +15,16 @@ export default class BaseModule {
 
   inject(module: Dependency[keyof Dependency]) {
     Object.assign(this.dependencies, {
-      [module.constructor.name]: module,
+      [(module as object).constructor.name]: module,
     });
   }
 
   bulkInjection(modules: Dependency[keyof Dependency][]) {
     this.logger.process("bulk injection modules", modules);
 
-    Object.assign(
-      this.dependencies,
-      Object.fromEntries(
-        modules.map((module) => [module.constructor.name, module])
-      )
-    );
+    modules.forEach((module) => {
+      this.inject(module);
+    });
   }
 
   createEl(element: string) {

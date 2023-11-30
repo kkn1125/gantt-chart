@@ -15,6 +15,10 @@ export default class TableManager extends BaseModule {
     super();
   }
 
+  getCells() {
+    return ([] as Cell[]).concat(...this.head, ...this.body);
+  }
+
   setupTable() {
     this.table = this.createEl("table") as HTMLTableElement;
     this.thead = this.createEl("thead") as HTMLTableSectionElement;
@@ -29,6 +33,13 @@ export default class TableManager extends BaseModule {
     this.uploadSelected();
     this.setupHeads();
     this.setupBodies();
+  }
+
+  selectCell(cell: Cell) {
+    if (!this.hasSelected(cell)) {
+      cell.selected = true;
+      this.selected.push(cell);
+    }
   }
 
   swapSheet(sheetId: number) {
@@ -55,41 +66,45 @@ export default class TableManager extends BaseModule {
         }
       }
     });
-    this.logger.check("selected", this.selected);
+    this.selected = [];
+    // this.saveTable();
+    // this.update();
   }
 
   private setupHeads() {
-    this.logger.check(
-      "check cell 1",
-      this.dependencies.StorageManager.storages.sheets[0].content.head[0][0]
-        .content
-    );
-    this.logger.check(
-      "check cell 2",
-      this.dependencies.StorageManager.storages.sheets[1].content.head[0][0]
-        .content
-    );
+    //   "check cell 1",
+    //   this.dependencies.StorageManager.storages.sheets[0].content.head[0][0]
+    //     .content
+    // );
+    //   "check cell 2",
+    //   this.dependencies.StorageManager.storages.sheets[1].content.head[0][0]
+    //     .content
+    // );
 
     for (let y = 0; y < this.head.length; y++) {
+      const tr = this.createEl("tr");
+      tr.dataset.row = "" + y;
       for (let x = 0; x < this.head[y].length; x++) {
-        this.logger.debug(x, y, "render");
         const th = this.head[y][x].render();
         th.dataset.posX = "" + x;
         th.dataset.posY = "" + y;
-        this.thead.append(th);
+        tr.append(th);
       }
+      this.thead.append(tr);
     }
   }
 
   private setupBodies() {
     for (let y = 0; y < this.body.length; y++) {
+      const tr = this.createEl("tr");
+      tr.dataset.row = "" + y;
       for (let x = 0; x < this.body[y].length; x++) {
-        this.logger.debug(x, y, "render");
         const td = this.body[y][x].render();
         td.dataset.posX = "" + x;
         td.dataset.posY = "" + (this.head.length + y);
-        this.tbody.append(td);
+        tr.append(td);
       }
+      this.tbody.append(tr);
     }
   }
 
@@ -98,7 +113,6 @@ export default class TableManager extends BaseModule {
     const last = this.selected.at(-1);
 
     if (first && last) {
-      this.logger.check("selected", this.selected);
       if (first === last) {
         first.selected = true;
         last.selected = true;
@@ -124,7 +138,10 @@ export default class TableManager extends BaseModule {
               cell.posX <= maxX
             ) {
               /* ... 범위 선택 시 컬러 설정 1회 적용되는 버그 이부분 문제 */
-              cell.selected = true;
+              if (!this.hasSelected(cell)) {
+                this.selectCell(cell);
+              }
+              // cell.selected = true;
               document
                 .querySelector(
                   `.cell[data-pos-x="${cell.posX}"][data-pos-y="${cell.posY}"]`
@@ -137,7 +154,6 @@ export default class TableManager extends BaseModule {
   }
 
   saveTable() {
-    this.logger.process("save table", this.selected);
     this.sortingPosition();
     this.dependencies.StorageManager.saveStorage();
   }
@@ -146,10 +162,8 @@ export default class TableManager extends BaseModule {
     this.head = [];
     this.body = [];
     const storageManager = this.dependencies.StorageManager;
-    // storageManager.loadStorage();
     const sheet = storageManager.findSheet(storageManager.sheetNumber);
     if (sheet) {
-      console.log("storageManager.sheetNumber", sheet);
       this.head = sheet.content.head;
       this.body = sheet.content.body;
     }
@@ -159,19 +173,14 @@ export default class TableManager extends BaseModule {
 
   uploadSelected() {
     this.selected = [];
-    this.logger.process("uploadSelected", this.selected);
     ([] as Cell[]).concat(...this.head, ...this.body).forEach((cell) => {
-      console.log("여긴가??", cell.selected);
       if (cell.selected) {
-        console.log("uploadSelected cell", cell);
         this.selected.push(cell);
       }
     });
-    this.logger.process("🛠️ uploadSelected", this.selected);
   }
 
   initialize() {
-    this.logger.process("initialize table manager");
     this.setupTable();
     // this.initSelected();
   }
@@ -195,6 +204,7 @@ export default class TableManager extends BaseModule {
   sortingPosition() {
     this.head.forEach((row, y) => {
       row.forEach((cell, x) => {
+        cell.id = x + row.length * y;
         cell.x = x;
         cell.y = y;
         cell.posX = x;
@@ -203,6 +213,7 @@ export default class TableManager extends BaseModule {
     });
     this.body.forEach((row, y) => {
       row.forEach((cell, x) => {
+        cell.id = x + y * row.length + this.head.length * this.head[0].length;
         cell.x = x;
         cell.y = y;
         cell.posX = x;
@@ -219,6 +230,7 @@ export default class TableManager extends BaseModule {
       body.splice(index, 0, new Cell(body.length, y, "td", "add"));
     });
     this.sortingPosition();
+    this.saveTable();
   }
 
   addBeforeColumn() {
@@ -229,6 +241,7 @@ export default class TableManager extends BaseModule {
       body.unshift(new Cell(body.length, y, "td", "before"));
     });
     this.sortingPosition();
+    this.saveTable();
   }
 
   addAfterColumn() {
@@ -239,5 +252,182 @@ export default class TableManager extends BaseModule {
       body.push(new Cell(body.length, y, "td", "after"));
     });
     this.sortingPosition();
+    this.saveTable();
+  }
+
+  addRowHeadTop() {
+    this.head.splice(
+      0,
+      0,
+      [...new Array(this.head[0].length)].map(
+        (_, i) => new Cell(i, 0, "th", "top")
+      )
+    );
+    this.sortingPosition();
+    this.saveTable();
+  }
+  addRowHeadBottom() {
+    this.head.push(
+      [...new Array(this.head[this.head.length - 1].length)].map(
+        (_, i) => new Cell(i, this.head.length, "th", "bottom")
+      )
+    );
+    this.sortingPosition();
+    this.saveTable();
+  }
+  addRowBodyTop() {
+    this.body.splice(
+      0,
+      0,
+      [...new Array(this.body[0].length)].map(
+        (_, i) => new Cell(i, 0, "td", "top")
+      )
+    );
+    this.sortingPosition();
+    this.saveTable();
+  }
+  addRowBodyBottom() {
+    this.body.push(
+      [...new Array(this.body[this.body.length - 1].length)].map(
+        (_, i) => new Cell(i, this.body.length, "td", "bottom")
+      )
+    );
+    this.sortingPosition();
+    this.saveTable();
+  }
+
+  getSelectedMinCell(): Cell | null {
+    let minX = Infinity;
+    let minY = Infinity;
+    let min = null;
+    this.selected.forEach((cell) => {
+      if (cell.posX < minX || cell.posY < minY) {
+        minX = cell.posX;
+        minY = cell.posY;
+        min = cell;
+      }
+    });
+
+    return min;
+  }
+
+  getSelectedMaxCell(): Cell | null {
+    let maxX = 0;
+    let maxY = 0;
+    let max = null;
+    this.selected.forEach((cell) => {
+      if (cell.posX > maxX || cell.posY > maxY) {
+        maxX = cell.posX;
+        maxY = cell.posY;
+        max = cell;
+      }
+    });
+    return max;
+  }
+  getSelectedAsGroup() {
+    const groups: Cell[][] = [];
+    for (let i = 0; i < this.selected.length; i++) {
+      if (groups.length === 0) {
+        groups.push([this.selected[i]]);
+        continue;
+      }
+
+      const cur = this.selected[i];
+      const next = this.selected[i + 1];
+
+      if (next) {
+        if (
+          cur.id + 1 === next.id ||
+          cur.id + this[cur.type === "th" ? "head" : "body"][0].length ===
+            next.id
+        ) {
+          groups[groups.length - 1].push(cur, next);
+        }
+      }
+    }
+    return groups;
+  }
+
+  concatAll() {
+    const min = this.getSelectedMinCell();
+    const max = this.getSelectedMaxCell();
+    if (min?.type !== max?.type) {
+      alert("thead와 tbody는 혼합 할 수 없습니다.");
+      return false;
+    }
+
+    if (min && max) {
+      const workArea = this[min.type === "th" ? "head" : "body"];
+      const col = max.posX - min.posX + 1;
+      const row = max.posY - min.posY + 1;
+
+      min.option.colSpan = col;
+      min.option.rowSpan = row;
+
+      // 1 ~ 2
+      // 1 ~ 2
+      for (let r = min.y; r <= min.y + row - 1; r++) {
+        for (let c = min.x; c <= min.x + col - 1; c++) {
+          if (r === min.y && c === min.x) {
+            workArea[r][c].option.colSpan = col;
+            workArea[r][c].option.rowSpan = row;
+          } else {
+            workArea[r][c].option.hidden = true;
+          }
+        }
+      }
+
+      // Object.assign(min.option, {
+      //   colSpan: col,
+      //   rowSpan: row,
+      // });
+    }
+    this.saveTable();
+    this.update();
+  }
+
+  concatVertical() {}
+
+  concatHorizontal() {}
+
+  splitCell() {
+    const min = this.getSelectedMinCell();
+    const max = this.getSelectedMaxCell();
+
+    if (min?.type !== max?.type) {
+      alert("thead와 tbody는 따로 분해 해야합니다.");
+      return false;
+    }
+
+    if (min && max) {
+      if (min === max) {
+        const workArea = this[min.type === "th" ? "head" : "body"];
+        const col = min.option.colSpan as number;
+        const row = min.option.rowSpan as number;
+
+        for (let r = min.y; r <= min.y + row - 1; r++) {
+          for (let c = min.x; c <= min.x + col - 1; c++) {
+            workArea[r][c].option = {};
+          }
+        }
+      } else {
+        const workArea = this[min.type === "th" ? "head" : "body"];
+        const col = max.posX - min.posX + 1;
+        const row = max.posY - min.posY + 1;
+
+        min.option.colSpan = col;
+        min.option.rowSpan = col;
+
+        // 1 ~ 2
+        // 1 ~ 2
+        for (let r = min.y; r <= min.y + row - 1; r++) {
+          for (let c = min.x; c <= min.x + col - 1; c++) {
+            workArea[r][c].option = {};
+          }
+        }
+      }
+    }
+    this.saveTable();
+    this.update();
   }
 }

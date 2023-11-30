@@ -62,6 +62,10 @@ export default class StorageManager extends BaseModule {
     return JSON.parse(localStorage.getItem(this.STORAGE) || "{}");
   }
 
+  initSheetNumber() {
+    this.sheetNumber = this.storages.sheets[0].id;
+  }
+
   saveStorage(sheets: Sheet[] = this.storages.sheets) {
     this.logger.debug("save storage", sheets);
     localStorage.setItem(this.STORAGE, JSON.stringify(this.storages));
@@ -69,19 +73,17 @@ export default class StorageManager extends BaseModule {
 
   loadStorage() {
     this.logger.debug("load storage", this.storages);
-    this.logger.debug("load storage", localStorage.getItem(this.STORAGE));
     this.storages = this.getStorage();
-    console.log("this.storages", this.storages);
-    this.logger.debug("this.storages", localStorage.getItem(this.STORAGE));
     this.storages.sheets = this.storages.sheets.map(
       (sheet) => new Sheet(sheet as Sheet)
     );
+
+    this.initSheetNumber();
 
     return this.storages;
   }
 
   addSheet(data: Sheet) {
-    console.log(data);
     this.storages.sheets.push(new Sheet(data));
     this.saveStorage();
   }

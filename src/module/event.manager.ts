@@ -7,7 +7,6 @@ export default class EventManager extends BaseModule {
 
   constructor() {
     super();
-
     this.handleCellInput = this.handleCellInput.bind(this);
   }
 
@@ -27,7 +26,10 @@ export default class EventManager extends BaseModule {
     this.logger.process("🛠️ check", "initialize selected");
 
     this.dependencies.TableManager.initSelected();
-    this.dependencies.TableManager.selected = [];
+    this.logger.process(
+      "check selected",
+      this.dependencies.TableManager.selected
+    );
   }
 
   removeContentEditable() {
@@ -65,6 +67,11 @@ export default class EventManager extends BaseModule {
           this.openPanel();
         }
       }
+
+      if (target && target.classList.contains("sheet")) {
+        this.dependencies.Ui.closeSheetTool();
+        this.dependencies.Ui.openSheetTool(target as HTMLDivElement);
+      }
     }
   }
 
@@ -77,19 +84,19 @@ export default class EventManager extends BaseModule {
         this.initializeSelectedInTableCells();
       }
     } else {
-      this.initializeSelectedInTableCells();
+      // this.initializeSelectedInTableCells();
       // this.dependencies.TableManager.selected = [];
     }
 
     const target = e.target as HTMLTableCellElement;
     if (target && target.classList.contains("cell")) {
-      const cell = this.dependencies.TableManager.findCellById(
-        +(target.dataset.id as string),
-        target.dataset.type as string
+      const cell = this.dependencies.TableManager.findCellByPos(
+        +(target.dataset.posX as string),
+        +(target.dataset.posY as string)
       );
       if (cell) {
         this.logger.check("check cell");
-        this.dependencies.TableManager.selected.push(cell);
+        this.dependencies.TableManager.selectCell(cell);
         this.dependencies.Ui.startDrawDragRect(e);
       } else {
       }
@@ -112,7 +119,7 @@ export default class EventManager extends BaseModule {
     ) {
       this.dependencies.Ui.dropdownClose();
       this.dependencies.Ui.dropdownOpen(
-        e,
+        // e,
         (target.dataset.tool || target.dataset.toolItem) as DropdownMenuNames
       );
     }
@@ -127,16 +134,14 @@ export default class EventManager extends BaseModule {
         +(target.dataset.posX as string),
         +(target.dataset.posY as string)
       );
-      console.log('dragging', this.dependencies.Ui.dragUiActivate);
       if (cell && this.dependencies.Ui.dragUiActivate) {
         if (this.dependencies.TableManager.hasSelected(cell)) {
           this.logger.check("selected had cell", cell);
         }
-        this.dependencies.TableManager.selected.push(cell);
+        this.dependencies.TableManager.selectCell(cell);
         this.dependencies.TableManager.highlightSelectedCells();
       }
     } else {
-      console.log(target.closest("#panel"));
       if (target && !target.closest("#panel")) {
         this.initializeSelectedInTableCells();
       }
@@ -145,6 +150,7 @@ export default class EventManager extends BaseModule {
   }
 
   handleDoubleClick(e: MouseEvent) {
+    console.log("여기");
     const target = e.target as HTMLTableCellElement;
     if (target.classList.contains("cell")) {
       this.editingEl = target;
@@ -164,7 +170,6 @@ export default class EventManager extends BaseModule {
     const id = +(this.editingEl.dataset.id as string);
     const type = this.editingEl.dataset.type as string;
     const cell = this.dependencies.TableManager.findCellById(id, type);
-    console.log(this.editingEl, cell);
     if (cell) {
       cell.setContent(this.editingEl.innerText);
     }
@@ -185,6 +190,9 @@ export default class EventManager extends BaseModule {
       if (key === "Escape") {
         this.removeContentEditable();
         this.editingEl.removeEventListener("input", this.handleCellInput);
+        this.dependencies.TableManager.initSelected();
+        this.dependencies.TableManager.saveTable();
+        this.dependencies.TableManager.update();
       }
     }
 
@@ -192,17 +200,20 @@ export default class EventManager extends BaseModule {
       if (this.isOpenedPanel()) {
         this.closePanel();
       }
+      this.dependencies.TableManager.initSelected();
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.TableManager.update();
     }
   }
 
-  handleKeyup(e: KeyboardEvent) {
-    const target = e.target as HTMLInputElement;
-    if (target && target.classList.contains("rgba")) {
-      const rgbaName = target.name as keyof PanelManager["previewColor"];
-      this.dependencies.PanelManager.previewColor[rgbaName] = +target.value;
-      this.dependencies.PanelManager.previewUpdate();
-    }
-  }
+  // handleKeyup(e: KeyboardEvent) {
+  //   const target = e.target as HTMLInputElement;
+  //   if (target && target.classList.contains("rgba")) {
+  //     const rgbaName = target.name as keyof PanelManager["previewColor"];
+  //     this.dependencies.PanelManager.previewColor[rgbaName] = +target.value;
+  //     this.dependencies.PanelManager.previewUpdate();
+  //   }
+  // }
 
   handleChange(e: Event) {
     const target = e.target as HTMLInputElement;
@@ -212,7 +223,6 @@ export default class EventManager extends BaseModule {
       this.dependencies.PanelManager.previewUpdate();
 
       this.dependencies.TableManager.selected.forEach((cell) => {
-        console.log("loop", cell);
         Object.assign(cell.style, {
           backgroundColor: this.dependencies.PanelManager.getBackgroundColor(),
         });
@@ -233,9 +243,9 @@ export default class EventManager extends BaseModule {
       !this.dependencies.Ui.dropdownOpened
     ) {
       this.dependencies.Ui.dropdownOpen(
-        e,
-        target.dataset.tool as DropdownMenuNames,
-        target.dataset.toolItemName as string
+        // e,
+        target.dataset.tool as DropdownMenuNames
+        // target.dataset.toolItemName as string
       );
     } else {
       this.dependencies.Ui.dropdownClose();
@@ -246,8 +256,19 @@ export default class EventManager extends BaseModule {
 
     if (target && target.classList.contains("sheet")) {
       const id = +(target.dataset.sheetId || 0);
-      console.log(id);
       this.dependencies.TableManager.swapSheet(id);
+    }
+
+    if (target && target.classList.contains("sheet-menu")) {
+      // this.dependencies.ToolManager.addRowHeadTop();
+      const id = +(target.dataset.sheetId as string);
+      const feature = target.dataset.sheetFeat as string;
+      this.dependencies.Ui.runSheetTool(feature, id);
+      this.dependencies.Ui.closeSheetTool();
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.StorageManager.loadStorage();
+      this.dependencies.TableManager.update();
+      this.dependencies.Ui.render();
     }
 
     if (target && target.classList.contains("cell")) {
@@ -261,6 +282,28 @@ export default class EventManager extends BaseModule {
     if (target && !target.closest("#panel")) {
       if (this.isOpenedPanel()) {
         this.closePanel();
+      }
+    }
+
+    if (target && target.closest("#panel")) {
+      if (target.classList.contains("cell-concat-button")) {
+        switch (target.dataset.dir) {
+          case "all":
+            this.dependencies.TableManager.concatAll();
+            break;
+          case "vertical":
+            this.dependencies.TableManager.concatVertical();
+            break;
+          case "horizontal":
+            this.dependencies.TableManager.concatHorizontal();
+            break;
+          case "split":
+            this.dependencies.TableManager.splitCell();
+            break;
+          default:
+            // none
+            break;
+        }
       }
     }
   }

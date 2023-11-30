@@ -14,76 +14,90 @@ export default class MenuManager extends BaseModule {
   about: DropdownMenuItem[] = [];
 
   initialize() {
-    this.addMenu(
+    const fileNewSheet = new MenuManager.Item(
       "file",
-      new MenuManager.Item("file", "New Sheet", () => {
-        console.log("create new sheet");
-        this.dependencies.ToolManager.createNewSheet();
-        this.dependencies.Ui.render();
-      })
+      "New Sheet",
+      this.dependencies.ToolManager.fileNewSheet.bind(this)
     );
-    this.addMenu(
+    const fileLocalSave = new MenuManager.Item(
       "file",
-      new MenuManager.Item("file", "Save", () => {
-        console.log("save");
-        this.dependencies.TableManager.saveTable();
-      })
+      "Local Save",
+      this.dependencies.ToolManager.fileLocalSave.bind(this)
     );
-    this.addMenu(
+    const fileSaveAs = new MenuManager.Item(
       "file",
-      new MenuManager.Item("file", "Save as ...", () => {
-        console.log("save as new filename");
-      })
+      "Save as ...",
+      this.dependencies.ToolManager.fileSaveAs.bind(this)
     );
-    this.addMenu(
+    const fileClose = new MenuManager.Item(
       "file",
-      new MenuManager.Item("file", "Close", () => {
-        console.log("close gantt chart");
-      })
+      "Close",
+      this.dependencies.ToolManager.fileClose.bind(this)
     );
 
-    this.addMenu(
+    const toolFullScreen = new MenuManager.Item(
       "tool",
-      new MenuManager.Item("tool", "Full Screen", (self: DropdownMenuItem) => {
-        if (self.name === "Full Screen") {
-          this.dependencies.ToolManager.requestFullScreen();
-          self.setName("Exit Screen");
-        } else {
-          this.dependencies.ToolManager.exitFullScreen();
-          self.setName("Full Screen");
-        }
-      })
-    );
-    this.addMenu(
-      "tool",
-      new MenuManager.Item("tool", "add before:column", () => {
-        console.log("add before column");
-        console.log(this.dependencies);
-        this.dependencies.TableManager.addBeforeColumn();
-        this.dependencies.Ui.render();
-      })
-    );
-    this.addMenu(
-      "tool",
-      new MenuManager.Item("tool", "add after:column", () => {
-        console.log("add after column");
-        this.dependencies.TableManager.addAfterColumn();
-        this.dependencies.Ui.render();
-      })
-    );
-    this.addMenu(
-      "tool",
-      new MenuManager.Item("tool", "table:fix", () => {
-        console.log("table size fix");
-      })
+      "Full Screen",
+      this.dependencies.ToolManager.toolFullScreen.bind(this)
     );
 
-    this.addMenu(
+    const toolAddColumnBefore = new MenuManager.Item(
+      "tool",
+      "add column: before",
+      this.dependencies.ToolManager.toolAddColumnBefore.bind(this)
+    );
+    const toolAddColumnAfter = new MenuManager.Item(
+      "tool",
+      "add column: after",
+      this.dependencies.ToolManager.toolAddColumnAfter.bind(this)
+    );
+    const toolAddRowHeadTop = new MenuManager.Item(
+      "tool",
+      "add row: head top",
+      this.dependencies.ToolManager.toolAddRowHeadTop.bind(this)
+    );
+    const toolAddRowHeadBottom = new MenuManager.Item(
+      "tool",
+      "add row: head bottom",
+      this.dependencies.ToolManager.toolAddRowHeadBottom.bind(this)
+    );
+    const toolAddRowBodyTop = new MenuManager.Item(
+      "tool",
+      "add row: body top",
+      this.dependencies.ToolManager.toolAddRowBodyTop.bind(this)
+    );
+    const toolAddRowBodyBottom = new MenuManager.Item(
+      "tool",
+      "add row: body bottom",
+      this.dependencies.ToolManager.toolAddRowBodyBottom.bind(this)
+    );
+    const toolTableFix = new MenuManager.Item(
+      "tool",
+      "table:fix",
+      this.dependencies.ToolManager.toolTableFix.bind(this)
+    );
+
+    const aboutHelper = new MenuManager.Item(
       "about",
-      new MenuManager.Item("about", "도움말", () => {
-        console.log("도움말 열기");
-      })
+      "도움말",
+      this.dependencies.ToolManager.aboutHelper.bind(this)
     );
+
+    this.addMenu("file", fileNewSheet);
+    this.addMenu("file", fileLocalSave);
+    this.addMenu("file", fileSaveAs);
+    this.addMenu("file", fileClose);
+
+    this.addMenu("tool", toolFullScreen);
+    this.addMenu("tool", toolAddColumnBefore);
+    this.addMenu("tool", toolAddColumnAfter);
+    this.addMenu("tool", toolAddRowHeadTop);
+    this.addMenu("tool", toolAddRowHeadBottom);
+    this.addMenu("tool", toolAddRowBodyTop);
+    this.addMenu("tool", toolAddRowBodyBottom);
+    this.addMenu("tool", toolTableFix);
+
+    this.addMenu("about", aboutHelper);
   }
 
   addMenu(menu: DropdownMenuNames, menuItem: DropdownMenuItem) {

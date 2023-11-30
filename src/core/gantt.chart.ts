@@ -71,7 +71,13 @@ export default class GanttChart extends BaseModule {
       this.ui,
     ]);
 
-    this.toolManager.bulkInjection([this.storageManager]);
+    this.toolManager.bulkInjection([
+      this.ui,
+      this.storageManager,
+      this.tableManager,
+      this.menuManager,
+      this.panelManager,
+    ]);
 
     this.storageManager.bulkInjection([this.ui]);
   }

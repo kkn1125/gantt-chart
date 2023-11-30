@@ -27,7 +27,6 @@ export default class Cell {
     if (xOrItem instanceof Object) {
       const { id, x, y, content, type, style, option, posX, posY, selected } =
         xOrItem as CellType;
-      console.trace("style load", id, style);
       this.id = id;
       this.x = x;
       this.y = y;
@@ -52,7 +51,6 @@ export default class Cell {
         this.content = content;
       }
     }
-    this.logger.process(`${this.constructor.name} ${this.id}`);
   }
 
   load({
@@ -99,7 +97,6 @@ export default class Cell {
       el.setAttribute("selected", "");
     }
 
-    // this.logger.check("el style", el.style.backgroundColor);
     return el;
   }
 }

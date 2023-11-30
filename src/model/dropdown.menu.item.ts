@@ -5,6 +5,7 @@ export default class DropdownMenuItem {
   group: string;
   name: string;
   feature: Function = () => {};
+  menuItems!: DropdownMenuItem;
 
   constructor(group: string, name: string, feature?: Function) {
     this.group = group;

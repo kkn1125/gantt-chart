@@ -19,6 +19,7 @@ export default class PanelManager extends BaseModule {
   private menuList: MenuList = {
     common: [],
   };
+  /* 추후 확장 기능 */
   menuName: keyof MenuList = "common";
   currentMenu: Menu[] = [];
   width: number | string = "30%";
@@ -37,12 +38,21 @@ export default class PanelManager extends BaseModule {
       title: "기본 스타일",
       item: [
         {
+          title: "셀 혼합 옵션",
+          panel: `
+        <div class="cell-concat-options">
+          <button class="cell-concat-button" data-dir="all">all</button>
+          <button class="cell-concat-button" data-dir="verticla">verticla</button>
+          <button class="cell-concat-button" data-dir="horizontal">horizontal</button>
+          <button class="cell-concat-button" data-dir="split">split</button>
+        </div>
+      `,
+        },
+        {
           title: "색상 조절",
           panel: `
         <div>preview</div>
-        <div id="preview-color">
-
-        </div>
+        <div id="preview-color"></div>
         <div class="palette">
           <input class="rgba" name="r" type="range" min="0" max="255" value="${this.previewColor.r}" />
           <input class="rgba" name="g" type="range" min="0" max="255" value="${this.previewColor.g}" />

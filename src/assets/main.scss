@@ -87,22 +87,51 @@ body {
       display: flex;
 
       #board {
+        position: relative;
         flex: 1;
         display: flex;
         flex-direction: column;
 
+        #sheet-tool {
+          position: fixed;
+          padding: 0.5rem;
+          background-color: #ffffff;
+          font-size: 0.8em;
+          box-shadow: 0 0 1rem 0 $BG_GRAY;
+          @include border-radius(0.3rem);
+
+          .sheet-menu-list {
+            display: flex;
+            gap: 0.3rem;
+
+            .sheet-menu {
+              border: 1px solid #ccc;
+              padding: 0.3rem 0.5rem;
+              @include border-radius(0.3rem);
+
+              &:hover {
+                cursor: pointer;
+                color: #ffffff;
+                background-color: #e5752f;
+              }
+            }
+          }
+        }
+
         #wrap-sheets {
-          width: 100%;
+          width: inherit;
+          height: inherit;
           flex: 1;
+          display: flex;
           overflow: auto;
+          justify-content: center;
+          align-items: start;
+          padding: 5rem;
 
           table {
-            position: absolute;
-            top: 50%;
-            left: 50%;
             box-shadow: 0 0 1rem 0.5rem #{$BG_GRAY}36;
             user-select: none;
-            @include transform(translate(-50%, -50%));
+            margin: auto;
 
             .cell {
               @include hover-effect(#83d86956);
@@ -188,6 +217,28 @@ body {
                 font-size: 0.8em;
               }
 
+              .cell-concat-options {
+                margin-top: 1rem;
+                display: flex;
+                gap: 0.3rem;
+                justify-content: center;
+
+                button {
+                  border: none;
+                  padding: 0.5rem 0.8rem;
+                  font-size: 0.8rem;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  @include border-radius(0.3rem);
+                  background-color: #ccc;
+                  &:hover {
+                    cursor: pointer;
+                    color: #ffffff;
+                    background-color: #e5752f;
+                  }
+                }
+              }
+
               #preview-color {
                 width: 200px;
                 height: 200px;
@@ -196,6 +247,7 @@ body {
                 margin-top: 1rem;
                 margin-bottom: 1rem;
               }
+              
               .palette {
                 display: flex;
                 flex-direction: column;
