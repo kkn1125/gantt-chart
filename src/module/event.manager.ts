@@ -150,7 +150,6 @@ export default class EventManager extends BaseModule {
   }
 
   handleDoubleClick(e: MouseEvent) {
-    console.log("여기");
     const target = e.target as HTMLTableCellElement;
     if (target.classList.contains("cell")) {
       this.editingEl = target;

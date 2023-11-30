@@ -24,5 +24,9 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: [{ find: "@", replacement: path.join(path.resolve(), "src") }],
     },
+    esbuild: {
+      minifyIdentifiers: false,
+      keepNames: true,
+    },
   };
 });

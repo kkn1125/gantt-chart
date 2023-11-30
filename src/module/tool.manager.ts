@@ -32,22 +32,22 @@ export default class ToolManager extends BaseModule {
   }
 
   fileNewSheet(_self: DropdownMenuItem) {
-    console.log("create new sheet");
+    this.logger.log("create new sheet");
     this.dependencies.ToolManager.createNewSheet();
     this.dependencies.Ui.render();
   }
 
   fileLocalSave(_self: DropdownMenuItem) {
-    console.log("save");
+    this.logger.log("save");
     this.dependencies.TableManager.saveTable();
   }
 
   fileSaveAs(_self: DropdownMenuItem) {
-    console.log("save as new filename");
+    this.logger.log("save as new filename");
   }
 
   fileClose(_self: DropdownMenuItem) {
-    console.log("close gantt chart");
+    this.logger.log("close gantt chart");
   }
 
   toolFullScreen(self: DropdownMenuItem) {
@@ -61,47 +61,47 @@ export default class ToolManager extends BaseModule {
   }
 
   toolAddColumnBefore(_self: DropdownMenuItem) {
-    console.log("add before column");
+    this.logger.log("add before column");
     this.dependencies.TableManager.addBeforeColumn();
     this.dependencies.Ui.render();
   }
 
   toolAddColumnAfter(_self: DropdownMenuItem) {
-    console.log("add before column");
+    this.logger.log("add before column");
     this.dependencies.TableManager.addAfterColumn();
     this.dependencies.Ui.render();
   }
 
   toolAddRowHeadTop(_self: DropdownMenuItem) {
-    console.log("add after column");
+    this.logger.log("add after column");
     this.dependencies.TableManager.addRowHeadTop();
     this.dependencies.Ui.render();
   }
 
   toolAddRowHeadBottom(_self: DropdownMenuItem) {
-    console.log("add after column");
+    this.logger.log("add after column");
     this.dependencies.TableManager.addRowHeadBottom();
     this.dependencies.Ui.render();
   }
 
   toolAddRowBodyTop(_self: DropdownMenuItem) {
-    console.log("add after column");
+    this.logger.log("add after column");
     this.dependencies.TableManager.addRowBodyTop();
     this.dependencies.Ui.render();
   }
 
   toolAddRowBodyBottom(_self: DropdownMenuItem) {
-    console.log("add after column");
+    this.logger.log("add after column");
     this.dependencies.TableManager.addRowBodyBottom();
     this.dependencies.Ui.render();
   }
 
   toolTableFix(_self: DropdownMenuItem) {
-    console.log("table size fix");
+    this.logger.log("table size fix");
   }
 
   aboutHelper(_self: DropdownMenuItem) {
-    console.log("도움말 열기");
+    this.logger.log("도움말 열기");
   }
 
   sheetToolRemove(sheetId: number) {

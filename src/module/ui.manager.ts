@@ -90,6 +90,9 @@ export default class Ui extends BaseModule {
 
   initialize() {
     this.setupDropdownMenus();
+    this.logger.log(this);
+    this.logger.log(this.dependencies.MenuManager);
+    this.logger.log(this.dropdowns);
     this.dropdowns.render();
     this.render();
   }
