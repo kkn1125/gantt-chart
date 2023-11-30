@@ -1,8 +1,6 @@
+import DropdownMenuItem from "@/model/dropdown.menu.item";
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
-import { APP } from "@/util/global";
-import MenuManager from "./menu.manager";
-import DropdownMenuItem from "@/model/dropdown.menu.item";
 
 export default class ToolManager extends BaseModule {
   constructor() {
@@ -33,22 +31,22 @@ export default class ToolManager extends BaseModule {
     await document.exitFullscreen();
   }
 
-  fileNewSheet(self: DropdownMenuItem) {
+  fileNewSheet(_self: DropdownMenuItem) {
     console.log("create new sheet");
     this.dependencies.ToolManager.createNewSheet();
     this.dependencies.Ui.render();
   }
 
-  fileLocalSave(self: DropdownMenuItem) {
+  fileLocalSave(_self: DropdownMenuItem) {
     console.log("save");
     this.dependencies.TableManager.saveTable();
   }
 
-  fileSaveAs(self: DropdownMenuItem) {
+  fileSaveAs(_self: DropdownMenuItem) {
     console.log("save as new filename");
   }
 
-  fileClose(self: DropdownMenuItem) {
+  fileClose(_self: DropdownMenuItem) {
     console.log("close gantt chart");
   }
 
@@ -62,47 +60,47 @@ export default class ToolManager extends BaseModule {
     }
   }
 
-  toolAddColumnBefore(self: DropdownMenuItem) {
+  toolAddColumnBefore(_self: DropdownMenuItem) {
     console.log("add before column");
     this.dependencies.TableManager.addBeforeColumn();
     this.dependencies.Ui.render();
   }
 
-  toolAddColumnAfter(self: DropdownMenuItem) {
+  toolAddColumnAfter(_self: DropdownMenuItem) {
     console.log("add before column");
     this.dependencies.TableManager.addAfterColumn();
     this.dependencies.Ui.render();
   }
 
-  toolAddRowHeadTop(self: DropdownMenuItem) {
+  toolAddRowHeadTop(_self: DropdownMenuItem) {
     console.log("add after column");
     this.dependencies.TableManager.addRowHeadTop();
     this.dependencies.Ui.render();
   }
 
-  toolAddRowHeadBottom(self: DropdownMenuItem) {
+  toolAddRowHeadBottom(_self: DropdownMenuItem) {
     console.log("add after column");
     this.dependencies.TableManager.addRowHeadBottom();
     this.dependencies.Ui.render();
   }
 
-  toolAddRowBodyTop(self: DropdownMenuItem) {
+  toolAddRowBodyTop(_self: DropdownMenuItem) {
     console.log("add after column");
     this.dependencies.TableManager.addRowBodyTop();
     this.dependencies.Ui.render();
   }
 
-  toolAddRowBodyBottom(self: DropdownMenuItem) {
+  toolAddRowBodyBottom(_self: DropdownMenuItem) {
     console.log("add after column");
     this.dependencies.TableManager.addRowBodyBottom();
     this.dependencies.Ui.render();
   }
 
-  toolTableFix(self: DropdownMenuItem) {
+  toolTableFix(_self: DropdownMenuItem) {
     console.log("table size fix");
   }
 
-  aboutHelper(self: DropdownMenuItem) {
+  aboutHelper(_self: DropdownMenuItem) {
     console.log("도움말 열기");
   }
 
