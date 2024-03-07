@@ -1,3 +1,5 @@
+import packageJson from "../../package.json";
+
 export const WRAP_SHEETS = document.querySelector(
   "#wrap-sheets"
 ) as HTMLDivElement;
@@ -12,3 +14,4 @@ export const MENU = document.querySelector("#menu") as HTMLDivElement;
 export const HEADER = document.querySelector("#header") as HTMLDivElement;
 export const PANEL = document.querySelector("#panel") as HTMLDivElement;
 export const BOARD = document.querySelector("#board") as HTMLDivElement;
+export { packageJson };

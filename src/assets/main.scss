@@ -32,6 +32,19 @@
 $BG_GRAY: #565656;
 $BG_DARK_GRAY: #434343;
 
+box-icon {
+  pointer-events: none;
+}
+
+#version-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid white;
+  @include border-radius(0.3rem);
+  padding: 0.3rem 0.5rem;
+  background-color: #{$BG_DARK_GRAY};
+}
+
 html,
 body,
 #app {
@@ -39,6 +52,14 @@ body,
   height: 100%;
   overflow: hidden;
   user-select: none;
+
+  /* full screen background-color options */
+  &::backdrop {
+    background-color: inherit;
+  }
+  &:fullscreen {
+    background-color: inherit;
+  }
 }
 
 body {
@@ -64,6 +85,8 @@ body {
     #header {
       color: #ffffff;
       background-color: #{$BG_GRAY};
+      padding-top: 0.2rem;
+      padding-bottom: 0.2rem;
 
       display: flex;
       gap: 1em;
@@ -87,6 +110,7 @@ body {
       display: flex;
 
       #board {
+        overflow: auto;
         position: relative;
         flex: 1;
         display: flex;
@@ -124,9 +148,9 @@ body {
           flex: 1;
           display: flex;
           overflow: auto;
-          justify-content: center;
+          // justify-content: center;
           align-items: start;
-          padding: 5rem;
+          padding: 2rem;
 
           table {
             box-shadow: 0 0 1rem 0.5rem #{$BG_GRAY}36;
@@ -151,12 +175,14 @@ body {
           padding-left: 0.5rem;
           padding-right: 0.5rem;
           padding-bottom: 0.5rem;
+          // border-collapse: collapse;
 
           .sheet {
             user-select: none;
             font-size: 0.7em;
             padding: 0.5rem;
             border: 1px solid #{$BG_GRAY};
+            box-shadow: inset -0.1px 0 0 0 #{$BG_GRAY};
             border-top: none;
             border-bottom-left-radius: 0.3rem;
             border-bottom-right-radius: 0.3rem;
@@ -224,6 +250,9 @@ body {
                 justify-content: center;
 
                 button {
+                  display: flex;
+                  flex-direction: row;
+                  align-items: center;
                   border: none;
                   padding: 0.5rem 0.8rem;
                   font-size: 0.8rem;
@@ -240,6 +269,7 @@ body {
               }
 
               #preview-color {
+                background-color: white;
                 width: 200px;
                 height: 200px;
                 margin-left: auto;
@@ -247,7 +277,7 @@ body {
                 margin-top: 1rem;
                 margin-bottom: 1rem;
               }
-              
+
               .palette {
                 display: flex;
                 flex-direction: column;
@@ -262,6 +292,22 @@ body {
                     left: -1em;
                     text-transform: uppercase;
                   }
+                }
+              }
+
+              .border-onoff {
+                display: flex;
+                flex-direction: column;
+                text-align: center;
+
+                &:not(.centered) > label {
+                  flex: 1;
+                }
+                .centered {
+                  flex: 1;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
                 }
               }
             }
@@ -344,4 +390,30 @@ body {
 [un-touchable] {
   user-select: none;
   pointer-events: none;
+}
+
+form[name="renameForm"] {
+  box-shadow: 0 0 1rem 0 #{$BG_GRAY}56;
+  background-color: white;
+  padding: 1rem;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  @include transform(translate(-50%, -50%));
+  input {
+    border: 1px solid #{$BG_DARK_GRAY};
+    @include border-radius(0.3rem);
+    padding: 0.3rem 0.5rem;
+    outline: none;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    @include border-radius(0.3rem);
+    padding: 0.3rem 0.5rem;
+    outline: none;
+    &:active {
+      box-shadow: inset 0 0 99999999px 0 #e5752f56;
+    }
+  }
 }

@@ -56,14 +56,20 @@ export default class EventManager extends BaseModule {
     return this.dependencies.PanelManager.isOpened();
   }
 
+  isOpenedSheetTool() {
+    return this.dependencies.PanelManager.isOpenedSheetTool();
+  }
+
   handleContextMenu(e: MouseEvent) {
     if (e.button === 2) {
       // right click
       e.preventDefault();
       e.stopPropagation();
+
       const target = e.target as HTMLTableCellElement;
       if (target && target.classList.contains("cell")) {
         if (!this.isOpenedPanel()) {
+          this.dependencies.PanelManager.initializeCellBackgroudColorSet();
           this.openPanel();
         }
       }
@@ -199,10 +205,19 @@ export default class EventManager extends BaseModule {
       if (this.isOpenedPanel()) {
         this.closePanel();
       }
+      if (this.isOpenedSheetTool()) {
+        this.dependencies.Ui.closeSheetTool();
+      }
+      if (this.isOpenedSheetRenameWindow()) {
+        this.dependencies.Ui.closeSubmitRename();
+      }
       this.dependencies.TableManager.initSelected();
       this.dependencies.TableManager.saveTable();
       this.dependencies.TableManager.update();
     }
+  }
+  isOpenedSheetRenameWindow() {
+    return !!window.renameForm;
   }
 
   // handleKeyup(e: KeyboardEvent) {
@@ -283,24 +298,32 @@ export default class EventManager extends BaseModule {
         this.closePanel();
       }
     }
-
     if (target && target.closest("#panel")) {
-      if (target.classList.contains("cell-concat-button")) {
+      if ("dir" in target.dataset) {
         switch (target.dataset.dir) {
           case "all":
             this.dependencies.TableManager.concatAll();
-            break;
-          case "vertical":
-            this.dependencies.TableManager.concatVertical();
-            break;
-          case "horizontal":
-            this.dependencies.TableManager.concatHorizontal();
             break;
           case "split":
             this.dependencies.TableManager.splitCell();
             break;
           default:
             // none
+            break;
+        }
+      } else if ("cellAdd" in target.dataset) {
+        switch (target.dataset.cellAdd) {
+          case "left":
+            this.dependencies.TableManager.addColumnLeftSide();
+            break;
+          case "right":
+            this.dependencies.TableManager.addColumnRightSide();
+            break;
+          case "top":
+            this.dependencies.TableManager.addRowTop();
+            break;
+          case "bottom":
+            this.dependencies.TableManager.addRowBottom();
             break;
         }
       }

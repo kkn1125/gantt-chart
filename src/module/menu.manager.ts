@@ -73,8 +73,13 @@ export default class MenuManager extends BaseModule {
     );
     const toolTableFix = new MenuManager.Item(
       "tool",
-      "table:fix",
-      this.dependencies.ToolManager.toolTableFix.bind(this)
+      `table:${
+        this.dependencies.StorageManager.storages.options.tableLayout ===
+        "fixed"
+          ? "auto"
+          : "fixed"
+      }`,
+      this.dependencies.ToolManager.toolTableFixed.bind(this)
     );
 
     const aboutHelper = new MenuManager.Item(

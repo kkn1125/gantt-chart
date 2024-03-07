@@ -1,4 +1,4 @@
-import { BOARD, PANEL, SHEET_FILES } from "@/util/global";
+import { BOARD, HEADER, PANEL, SHEET_FILES, packageJson } from "@/util/global";
 import BaseModule from "./base.module";
 import MenuManager from "./menu.manager";
 
@@ -94,6 +94,7 @@ export default class Ui extends BaseModule {
     this.logger.log(this.dependencies.MenuManager);
     this.logger.log(this.dropdowns);
     this.dropdowns.render();
+    this.drawVersionTag();
     this.render();
   }
 
@@ -222,11 +223,60 @@ export default class Ui extends BaseModule {
   runSheetTool(feature: string, sheetId: number) {
     if (feature === "remove") {
       this.dependencies.ToolManager.sheetToolRemove(sheetId);
+    } else if (feature === "rename") {
+      this.popupRename((rename: string) => {
+        this.dependencies.ToolManager.sheetToolRename(sheetId, rename);
+        this.dependencies.TableManager.saveTable();
+        this.dependencies.StorageManager.loadStorage();
+        this.dependencies.TableManager.update();
+        this.render();
+      });
     }
+  }
+
+  popupRename(cb: (rename: string) => void) {
+    const renameWindow = document.createElement("form");
+    renameWindow.name = "renameForm";
+    renameWindow.addEventListener(
+      "submit",
+      (e) => {
+        e.preventDefault();
+        if (window.renameForm.dataset.state !== "close") {
+          cb(window.renameForm.rename.value);
+        }
+        window.renameForm.remove();
+      },
+      { once: true }
+    );
+    renameWindow.innerHTML = `
+      <input name="rename" type="text" />
+      <button type="submit">change</button>
+    `;
+    document.body.append(renameWindow);
+  }
+
+  closeSubmitRename() {
+    window.renameForm.dataset.state = "close";
+    window.renameForm.dispatchEvent(new SubmitEvent("submit"));
   }
 
   render() {
     this.dependencies.TableManager.update();
     this.drawSheets();
+  }
+
+  drawVersionTag() {
+    const versionTag = document.createElement("div");
+    versionTag.id = "version-tag";
+    versionTag.title = "v" + packageJson.version;
+    versionTag.innerText = "v" + packageJson.version;
+    HEADER.append(versionTag);
+  }
+}
+
+declare global {
+  interface Window {
+    renameSubmit: (e: SubmitEvent) => void;
+    renameForm: HTMLFormElement;
   }
 }

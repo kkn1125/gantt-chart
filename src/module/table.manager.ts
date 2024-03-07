@@ -10,6 +10,10 @@ export default class TableManager extends BaseModule {
   private tbody!: HTMLTableSectionElement;
   private head: Cell[][] = [];
   private body: Cell[][] = [];
+  private options: Partial<CSSStyleDeclaration> = {
+    tableLayout: "auto",
+    borderCollapse: "collapse",
+  };
 
   constructor() {
     super();
@@ -24,8 +28,15 @@ export default class TableManager extends BaseModule {
     this.thead = this.createEl("thead") as HTMLTableSectionElement;
     this.tbody = this.createEl("tbody") as HTMLTableSectionElement;
     this.table.append(this.thead, this.tbody);
-    this.table.style.cssText = `table-layout: auto;border-collapse: collapse;`;
     this.thead.style.cssText = `border-bottom: 3px solid #565656`;
+
+    Object.entries(this.options).forEach((keyValue) => {
+      const [k, v] = keyValue;
+      if (k in this.table.style) {
+        Object.assign(this.table.style, { [k]: v });
+      }
+    });
+
     WRAP_SHEETS.innerHTML = "";
     WRAP_SHEETS.append(this.table);
 
@@ -49,6 +60,7 @@ export default class TableManager extends BaseModule {
 
   update() {
     this.setupTable();
+    this.saveTable();
   }
 
   hasSelected(cell: Cell) {
@@ -155,6 +167,7 @@ export default class TableManager extends BaseModule {
 
   saveTable() {
     this.sortingPosition();
+    this.dependencies.StorageManager.addOption = this.options;
     this.dependencies.StorageManager.saveStorage();
   }
 
@@ -182,6 +195,8 @@ export default class TableManager extends BaseModule {
 
   initialize() {
     this.setupTable();
+    this.options = this.dependencies.StorageManager.storages.options;
+    this.saveTable();
     // this.initSelected();
   }
 
@@ -222,26 +237,42 @@ export default class TableManager extends BaseModule {
     });
   }
 
+  addColumnLeftSide() {
+    const lastOne = this.selected[this.selected.length - 1];
+    const cellPosX = lastOne.x;
+    const leftSideIndex = cellPosX - 1 > 0 ? cellPosX - 1 : 0;
+    this.addColumn(leftSideIndex);
+  }
+
+  addColumnRightSide() {
+    const lastOne = this.selected[this.selected.length - 1];
+    const cellPosX = lastOne.x;
+    const RightSideIndex = cellPosX + 1;
+    this.addColumn(RightSideIndex);
+  }
+
   addColumn(index: number) {
     this.head.forEach((head, y) => {
-      head.splice(index, 0, new Cell(head.length, y, "th", "add"));
+      head.splice(index, 0, new Cell(index, y, "th", "add"));
     });
     this.body.forEach((body, y) => {
-      body.splice(index, 0, new Cell(body.length, y, "td", "add"));
+      body.splice(index, 0, new Cell(index, y, "td", "add"));
     });
     this.sortingPosition();
     this.saveTable();
+    this.update();
   }
 
   addBeforeColumn() {
     this.head.forEach((head, y) => {
-      head.unshift(new Cell(head.length, y, "th", "before"));
+      head.unshift(new Cell(0, y, "th", "before"));
     });
     this.body.forEach((body, y) => {
-      body.unshift(new Cell(body.length, y, "td", "before"));
+      body.unshift(new Cell(0, y, "td", "before"));
     });
     this.sortingPosition();
     this.saveTable();
+    this.update();
   }
 
   addAfterColumn() {
@@ -253,6 +284,54 @@ export default class TableManager extends BaseModule {
     });
     this.sortingPosition();
     this.saveTable();
+    this.update();
+  }
+
+  addRowTop() {
+    const lastOne = this.selected[this.selected.length - 1];
+    const cellPosY = lastOne.y;
+    const type = lastOne.type;
+    const topSideIndex = cellPosY - 1 > 0 ? cellPosY - 1 : 0;
+    this.addRow(topSideIndex, type);
+  }
+
+  addRowBottom() {
+    const lastOne = this.selected[this.selected.length - 1];
+    const cellPosY = lastOne.y;
+    const type = lastOne.type;
+    const bottomSideIndex = cellPosY + 1;
+    this.addRow(bottomSideIndex, type);
+  }
+
+  addRow(index: number, type: "th" | "td") {
+    if (type === "th") {
+      this.addRowHead(index);
+    } else {
+      this.addRowBody(index);
+    }
+    this.sortingPosition();
+    this.saveTable();
+    this.update();
+  }
+
+  addRowHead(index: number) {
+    this.head.splice(
+      index,
+      0,
+      [...new Array(this.head[0].length)].map(
+        (_, i) => new Cell(i, index, "th", "add row head")
+      )
+    );
+  }
+
+  addRowBody(index: number) {
+    this.body.splice(
+      index,
+      0,
+      [...new Array(this.body[0].length)].map(
+        (_, i) => new Cell(i, index, "td", "add row head")
+      )
+    );
   }
 
   addRowHeadTop() {
@@ -266,6 +345,7 @@ export default class TableManager extends BaseModule {
     this.sortingPosition();
     this.saveTable();
   }
+
   addRowHeadBottom() {
     this.head.push(
       [...new Array(this.head[this.head.length - 1].length)].map(
@@ -275,6 +355,7 @@ export default class TableManager extends BaseModule {
     this.sortingPosition();
     this.saveTable();
   }
+
   addRowBodyTop() {
     this.body.splice(
       0,
@@ -286,6 +367,7 @@ export default class TableManager extends BaseModule {
     this.sortingPosition();
     this.saveTable();
   }
+
   addRowBodyBottom() {
     this.body.push(
       [...new Array(this.body[this.body.length - 1].length)].map(
@@ -386,9 +468,13 @@ export default class TableManager extends BaseModule {
     this.update();
   }
 
-  concatVertical() {}
+  tableLayoutFixed() {
+    this.options.tableLayout = "fixed";
+  }
 
-  concatHorizontal() {}
+  tableLayoutAuto() {
+    this.options.tableLayout = "auto";
+  }
 
   splitCell() {
     const min = this.getSelectedMinCell();

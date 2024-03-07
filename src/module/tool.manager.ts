@@ -19,7 +19,9 @@ export default class ToolManager extends BaseModule {
 
   async requestFullScreen() {
     try {
-      await document.body.requestFullscreen();
+      await document.body.requestFullscreen({
+        navigationUI: "auto",
+      });
     } catch (err: any) {
       alert(
         `Error attempting to enable fullscreen mode: ${err.message} (${err.name})`
@@ -28,7 +30,11 @@ export default class ToolManager extends BaseModule {
   }
 
   async exitFullScreen() {
-    await document.exitFullscreen();
+    try {
+      await document.exitFullscreen();
+    } catch (error: any) {
+      // console.log(error.message, error.code);
+    }
   }
 
   fileNewSheet(_self: DropdownMenuItem) {
@@ -96,8 +102,19 @@ export default class ToolManager extends BaseModule {
     this.dependencies.Ui.render();
   }
 
-  toolTableFix(_self: DropdownMenuItem) {
-    this.logger.log("table size fix");
+  toolTableFixed(self: DropdownMenuItem) {
+    if (self.name === "table:fixed") {
+      this.dependencies.TableManager.tableLayoutFixed();
+      this.dependencies.TableManager.update();
+      this.logger.log("table size fixed");
+      self.setName("table:auto");
+      this.dependencies.Ui.render();
+    } else {
+      this.dependencies.TableManager.tableLayoutAuto();
+      this.dependencies.TableManager.update();
+      self.setName("table:fixed");
+      this.dependencies.Ui.render();
+    }
   }
 
   aboutHelper(_self: DropdownMenuItem) {
@@ -106,5 +123,9 @@ export default class ToolManager extends BaseModule {
 
   sheetToolRemove(sheetId: number) {
     this.dependencies.StorageManager.deleteSheet(sheetId);
+  }
+
+  sheetToolRename(sheetId: number, rename: string) {
+    this.dependencies.StorageManager.renameSheet(sheetId, rename);
   }
 }

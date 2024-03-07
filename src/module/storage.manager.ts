@@ -8,7 +8,7 @@ export default class StorageManager extends BaseModule {
 
   storages: {
     sheets: Sheet[];
-    options: {};
+    options: Partial<CSSStyleDeclaration>;
   } = {
     sheets: [],
     options: {},
@@ -16,6 +16,10 @@ export default class StorageManager extends BaseModule {
 
   constructor() {
     super();
+  }
+
+  set addOption(options: Partial<CSSStyleDeclaration>) {
+    Object.assign(this.storages.options, options);
   }
 
   getBigId() {
@@ -63,7 +67,10 @@ export default class StorageManager extends BaseModule {
   }
 
   initSheetNumber() {
-    this.sheetNumber = this.storages.sheets[0].id;
+    // 시트가 삭제 되고 번호 자체가 없을 때 초기화한다.
+    if (this.storages.sheets.every((sheet) => sheet.id !== this.sheetNumber)) {
+      this.sheetNumber = this.storages.sheets[0].id;
+    }
   }
 
   saveStorage(sheets: Sheet[] = this.storages.sheets) {
@@ -100,7 +107,12 @@ export default class StorageManager extends BaseModule {
 
   deleteSheet(id: number) {
     const index = this.findSheetIndex(id);
-    return this.storages.sheets.splice(index, 1);
+    const nextSheet =
+      this.storages.sheets[index + 1] ?? this.storages.sheets[index - 1];
+    const deletedSheet = this.storages.sheets.splice(index, 1);
+    this.sheetNumber = nextSheet.id;
+    // 삭제 후 다음 시트 번호로 교체 없으면, 이전 시트 번호로 교체
+    return deletedSheet;
   }
 
   update(sheet: Sheet) {
