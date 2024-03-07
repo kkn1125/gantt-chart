@@ -1,4 +1,4 @@
-import { PANEL, SHEET_FILES } from "@/util/global";
+import { PANEL } from "@/util/global";
 import BaseModule from "./base.module";
 
 type Item = {
@@ -129,7 +129,7 @@ export default class PanelManager extends BaseModule {
     this.dependencies.Ui.openPanel(this.width);
     const rgbaTool = document.querySelector(".palette");
     if (rgbaTool) {
-      console.log(rgbaTool);
+      this.logger.log(rgbaTool);
       const r = rgbaTool.querySelector('[name="r"]') as HTMLInputElement;
       const g = rgbaTool.querySelector('[name="g"]') as HTMLInputElement;
       const b = rgbaTool.querySelector('[name="b"]') as HTMLInputElement;

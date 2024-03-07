@@ -90,6 +90,15 @@ export default class StorageManager extends BaseModule {
     return this.storages;
   }
 
+  moveSheet(sheetId: number, move: number) {
+    const index = this.findSheetIndex(sheetId);
+    const moveIndex = index + move;
+    const [sheet] = this.storages.sheets.splice(index, 1);
+    this.logger.log("move sheet", sheet);
+    this.storages.sheets.splice(moveIndex, 0, sheet);
+    this.saveStorage();
+  }
+
   addSheet(data: Sheet) {
     this.storages.sheets.push(new Sheet(data));
     this.saveStorage();

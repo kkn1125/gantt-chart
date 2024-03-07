@@ -231,6 +231,10 @@ export default class Ui extends BaseModule {
         this.dependencies.TableManager.update();
         this.render();
       });
+    } else if (feature === "move-left") {
+      this.dependencies.ToolManager.sheetToolMoveLeft(sheetId);
+    } else if (feature === "move-right") {
+      this.dependencies.ToolManager.sheetToolMoveRight(sheetId);
     }
   }
 

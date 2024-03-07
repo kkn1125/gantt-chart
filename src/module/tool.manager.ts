@@ -33,7 +33,7 @@ export default class ToolManager extends BaseModule {
     try {
       await document.exitFullscreen();
     } catch (error: any) {
-      // console.log(error.message, error.code);
+      // this.logger.log(error.message, error.code);
     }
   }
 
@@ -127,5 +127,12 @@ export default class ToolManager extends BaseModule {
 
   sheetToolRename(sheetId: number, rename: string) {
     this.dependencies.StorageManager.renameSheet(sheetId, rename);
+  }
+
+  sheetToolMoveLeft(sheetId: number) {
+    this.dependencies.StorageManager.moveSheet(sheetId, -1);
+  }
+  sheetToolMoveRight(sheetId: number) {
+    this.dependencies.StorageManager.moveSheet(sheetId, 1);
   }
 }
