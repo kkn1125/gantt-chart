@@ -1,19 +1,19 @@
 import Cell from "@/model/cell";
 import BaseModule from "@/module/base.module";
-import { WRAP_SHEETS } from "@/util/global";
+import { MESSAGE, WRAP_SHEETS } from "@/util/global";
 
 export default class TableManager extends BaseModule {
   selected: Cell[] = [];
+  options: Partial<CSSStyleDeclaration> = {
+    tableLayout: "auto",
+    borderCollapse: "collapse",
+  };
 
   private table!: HTMLTableElement;
   private thead!: HTMLTableSectionElement;
   private tbody!: HTMLTableSectionElement;
   private head: Cell[][] = [];
   private body: Cell[][] = [];
-  private options: Partial<CSSStyleDeclaration> = {
-    tableLayout: "auto",
-    borderCollapse: "collapse",
-  };
 
   constructor() {
     super();
@@ -59,6 +59,13 @@ export default class TableManager extends BaseModule {
   }
 
   update() {
+    if (
+      Object.keys(this.dependencies.StorageManager.storages.options).length ===
+      0
+    ) {
+      this.dependencies.StorageManager.storages.options = this.options;
+    }
+
     this.setupTable();
     this.saveTable();
   }
@@ -84,15 +91,6 @@ export default class TableManager extends BaseModule {
   }
 
   private setupHeads() {
-    //   "check cell 1",
-    //   this.dependencies.StorageManager.storages.sheets[0].content.head[0][0]
-    //     .content
-    // );
-    //   "check cell 2",
-    //   this.dependencies.StorageManager.storages.sheets[1].content.head[0][0]
-    //     .content
-    // );
-
     for (let y = 0; y < this.head.length; y++) {
       const tr = this.createEl("tr");
       tr.dataset.row = "" + y;
@@ -167,7 +165,6 @@ export default class TableManager extends BaseModule {
 
   saveTable() {
     this.sortingPosition();
-    this.dependencies.StorageManager.addOption = this.options;
     this.dependencies.StorageManager.saveStorage();
   }
 
@@ -194,8 +191,12 @@ export default class TableManager extends BaseModule {
   }
 
   initialize() {
+    if (
+      Object.keys(this.dependencies.StorageManager.storages.options).length > 0
+    ) {
+      this.options = this.dependencies.StorageManager.storages.options;
+    }
     this.setupTable();
-    this.options = this.dependencies.StorageManager.storages.options;
     this.saveTable();
     // this.initSelected();
   }
@@ -239,6 +240,11 @@ export default class TableManager extends BaseModule {
 
   addColumnLeftSide() {
     const lastOne = this.selected[this.selected.length - 1];
+    if (!lastOne) {
+      this.logger.error("not selected cell");
+      alert(MESSAGE.NO_SELECTED_CELL);
+      return;
+    }
     const cellPosX = lastOne.x;
     const leftSideIndex = cellPosX - 1 > 0 ? cellPosX - 1 : 0;
     this.addColumn(leftSideIndex);
@@ -246,6 +252,11 @@ export default class TableManager extends BaseModule {
 
   addColumnRightSide() {
     const lastOne = this.selected[this.selected.length - 1];
+    if (!lastOne) {
+      this.logger.error("not selected cell");
+      alert(MESSAGE.NO_SELECTED_CELL);
+      return;
+    }
     const cellPosX = lastOne.x;
     const RightSideIndex = cellPosX + 1;
     this.addColumn(RightSideIndex);
@@ -289,6 +300,11 @@ export default class TableManager extends BaseModule {
 
   addRowTop() {
     const lastOne = this.selected[this.selected.length - 1];
+    if (!lastOne) {
+      this.logger.error("not selected cell");
+      alert(MESSAGE.NO_SELECTED_CELL);
+      return;
+    }
     const cellPosY = lastOne.y;
     const type = lastOne.type;
     const topSideIndex = cellPosY - 1 > 0 ? cellPosY - 1 : 0;
@@ -297,6 +313,11 @@ export default class TableManager extends BaseModule {
 
   addRowBottom() {
     const lastOne = this.selected[this.selected.length - 1];
+    if (!lastOne) {
+      this.logger.error("not selected cell");
+      alert(MESSAGE.NO_SELECTED_CELL);
+      return;
+    }
     const cellPosY = lastOne.y;
     const type = lastOne.type;
     const bottomSideIndex = cellPosY + 1;
@@ -433,8 +454,11 @@ export default class TableManager extends BaseModule {
   concatAll() {
     const min = this.getSelectedMinCell();
     const max = this.getSelectedMaxCell();
+    if (!min && !max) {
+      alert(MESSAGE.NO_SELECTED_CELL);
+    }
     if (min?.type !== max?.type) {
-      alert("thead와 tbody는 혼합 할 수 없습니다.");
+      alert(MESSAGE.CANT_CONCAT);
       return false;
     }
 
@@ -479,9 +503,11 @@ export default class TableManager extends BaseModule {
   splitCell() {
     const min = this.getSelectedMinCell();
     const max = this.getSelectedMaxCell();
-
+    if (!min && !max) {
+      alert(MESSAGE.NO_SELECTED_CELL);
+    }
     if (min?.type !== max?.type) {
-      alert("thead와 tbody는 따로 분해 해야합니다.");
+      alert(MESSAGE.CANT_SPLIT);
       return false;
     }
 

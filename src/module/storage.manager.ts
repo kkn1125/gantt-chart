@@ -50,9 +50,6 @@ export default class StorageManager extends BaseModule {
 
     Sheet.id = this.getBigId();
 
-    if (this.storages.sheets.length === 0) {
-      this.addSheet(new Sheet());
-    }
     this.logger.process("✨ loaded storage");
   }
 
@@ -81,6 +78,7 @@ export default class StorageManager extends BaseModule {
   loadStorage() {
     this.logger.debug("load storage", this.storages);
     this.storages = this.getStorage();
+
     this.storages.sheets = this.storages.sheets.map(
       (sheet) => new Sheet(sheet as Sheet)
     );
@@ -115,13 +113,15 @@ export default class StorageManager extends BaseModule {
   }
 
   deleteSheet(id: number) {
-    const index = this.findSheetIndex(id);
-    const nextSheet =
-      this.storages.sheets[index + 1] ?? this.storages.sheets[index - 1];
-    const deletedSheet = this.storages.sheets.splice(index, 1);
-    this.sheetNumber = nextSheet.id;
-    // 삭제 후 다음 시트 번호로 교체 없으면, 이전 시트 번호로 교체
-    return deletedSheet;
+    if (this.storages.sheets.length > 1) {
+      const index = this.findSheetIndex(id);
+      const nextSheet =
+        this.storages.sheets[index + 1] ?? this.storages.sheets[index - 1];
+      const deletedSheet = this.storages.sheets.splice(index, 1);
+      this.sheetNumber = nextSheet.id;
+      // 삭제 후 다음 시트 번호로 교체 없으면, 이전 시트 번호로 교체
+      return deletedSheet;
+    }
   }
 
   update(sheet: Sheet) {

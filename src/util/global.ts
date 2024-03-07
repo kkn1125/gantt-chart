@@ -14,4 +14,10 @@ export const MENU = document.querySelector("#menu") as HTMLDivElement;
 export const HEADER = document.querySelector("#header") as HTMLDivElement;
 export const PANEL = document.querySelector("#panel") as HTMLDivElement;
 export const BOARD = document.querySelector("#board") as HTMLDivElement;
+export const MESSAGE = {
+  NO_SELECTED_CELL: "선택한 셀이 없습니다!",
+  CANT_CONCAT: "thead와 tbody는 함께 혼합 할 수 없습니다.",
+  CANT_SPLIT: "thead와 tbody는 함께 분해 할 수 없습니다.",
+} as const;
+type MESSAGE = (typeof MESSAGE)[keyof typeof MESSAGE];
 export { packageJson };
