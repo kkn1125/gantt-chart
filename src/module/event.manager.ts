@@ -13,6 +13,7 @@ export default class EventManager extends BaseModule {
   initialize() {
     window.addEventListener("keydown", this.handleKeydown.bind(this));
     // window.addEventListener("keyup", this.handleKeyup.bind(this));
+    window.addEventListener("input", this.handleInput.bind(this));
     window.addEventListener("change", this.handleChange.bind(this));
     window.addEventListener("click", this.handleClick.bind(this));
     window.addEventListener("mousemove", this.handleMouseMove.bind(this));
@@ -58,6 +59,25 @@ export default class EventManager extends BaseModule {
 
   isOpenedSheetTool() {
     return this.dependencies.PanelManager.isOpenedSheetTool();
+  }
+
+  handleInput(e: Event) {
+    const target = e.target as HTMLInputElement;
+    if (target && target.classList.contains("total")) {
+      const hexColor = target.value;
+      const palette = this.dependencies.PanelManager.parseHexToRGB(hexColor);
+      this.dependencies.PanelManager.previewColor = palette;
+      this.dependencies.PanelManager.previewUpdate();
+
+      this.dependencies.TableManager.selected.forEach((cell) => {
+        Object.assign(cell.style, {
+          backgroundColor: this.dependencies.PanelManager.getBackgroundColor(),
+        });
+      });
+
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.TableManager.update();
+    }
   }
 
   handleContextMenu(e: MouseEvent) {
@@ -199,21 +219,28 @@ export default class EventManager extends BaseModule {
         this.dependencies.TableManager.saveTable();
         this.dependencies.TableManager.update();
       }
-    }
+    } else {
+      if (e.ctrlKey) {
+        if (key === "a") {
+          this.dependencies.TableManager.selectAllCells();
+          this.dependencies.TableManager.highlightSelectedCells();
+        }
+      }
 
-    if (key === "Escape") {
-      if (this.isOpenedPanel()) {
-        this.closePanel();
+      if (key === "Escape") {
+        if (this.isOpenedPanel()) {
+          this.closePanel();
+        }
+        if (this.isOpenedSheetTool()) {
+          this.dependencies.Ui.closeSheetTool();
+        }
+        if (this.isOpenedSheetRenameWindow()) {
+          this.dependencies.Ui.closeSubmitRename();
+        }
+        this.dependencies.TableManager.initSelected();
+        this.dependencies.TableManager.saveTable();
+        this.dependencies.TableManager.update();
       }
-      if (this.isOpenedSheetTool()) {
-        this.dependencies.Ui.closeSheetTool();
-      }
-      if (this.isOpenedSheetRenameWindow()) {
-        this.dependencies.Ui.closeSubmitRename();
-      }
-      this.dependencies.TableManager.initSelected();
-      this.dependencies.TableManager.saveTable();
-      this.dependencies.TableManager.update();
     }
   }
   isOpenedSheetRenameWindow() {
@@ -240,8 +267,6 @@ export default class EventManager extends BaseModule {
         Object.assign(cell.style, {
           backgroundColor: this.dependencies.PanelManager.getBackgroundColor(),
         });
-        // cell.style.backgroundColor =
-        //   this.dependencies.PanelManager.getBackgroundColor();
       });
 
       this.dependencies.TableManager.saveTable();
@@ -324,6 +349,21 @@ export default class EventManager extends BaseModule {
             break;
           case "bottom":
             this.dependencies.TableManager.addRowBottom();
+            break;
+        }
+      } else if ("cellRemove" in target.dataset) {
+        switch (target.dataset.cellRemove) {
+          case "row":
+            this.dependencies.TableManager.removeRow();
+            break;
+          case "column":
+            this.dependencies.TableManager.removeColumn();
+            break;
+        }
+      } else if ("cellFeature" in target.dataset) {
+        switch (target.dataset.cellFeature) {
+          case "remove-content":
+            this.dependencies.TableManager.removeContent();
             break;
         }
       }

@@ -38,6 +38,14 @@ export default class PanelManager extends BaseModule {
       title: "기본 스타일",
       item: [
         {
+          title: "셀 비우기 옵션",
+          panel: `
+        <div class="cell-concat-options">
+          <button class="" data-cell-feature="remove-content">내용 제거</button>
+        </div>
+      `,
+        },
+        {
           title: "셀 추가 옵션",
           panel: `
         <div class="cell-concat-options">
@@ -45,6 +53,15 @@ export default class PanelManager extends BaseModule {
           <button class="" data-cell-add="right"><box-icon name='right-arrow-alt'></box-icon></button>
           <button class="" data-cell-add="top"><box-icon name='up-arrow-alt'></box-icon></button>
           <button class="" data-cell-add="bottom"><box-icon name='down-arrow-alt'></box-icon></button>
+        </div>
+      `,
+        },
+        {
+          title: "셀 제거 옵션",
+          panel: `
+        <div class="cell-concat-options">
+          <button class="" data-cell-remove="row"><box-icon name='move-horizontal'></box-icon></button>
+          <button class="" data-cell-remove="column"><box-icon name='move-vertical'></box-icon></button>
         </div>
       `,
         },
@@ -63,6 +80,7 @@ export default class PanelManager extends BaseModule {
         <div>preview</div>
         <div id="preview-color"></div>
         <div class="palette">
+          <input class="total" name="rgba" type="color" rgba />
           <input class="rgba" name="r" type="range" min="0" max="255" />
           <input class="rgba" name="g" type="range" min="0" max="255" />
           <input class="rgba" name="b" type="range" min="0" max="255" />
@@ -70,36 +88,36 @@ export default class PanelManager extends BaseModule {
         </div>
       `,
         },
-      //   {
-      //     title: "테두리 그리기 제어",
-      //     panel: `
-      //   <div>border</div>
-      //   <div class="border-onoff">
-      //     <label>
-      //       <input type="checkbox"></input>
-      //       top
-      //     </label>
-      //     <div class="centered">
-      //       <label>
-      //         <input type="checkbox"></input>
-      //         left
-      //       </label>
-      //         <label>
-      //           <input type="checkbox"></input>
-      //           all
-      //         </label>
-      //         <label>
-      //           <input type="checkbox"></input>
-      //           right
-      //         </label>
-      //     </div>
-      //     <label>
-      //       <input type="checkbox"></input>
-      //       bottom
-      //     </label>
-      //   </div>
-      // `,
-      //   },
+        {
+          title: "테두리 그리기 제어",
+          panel: `
+        <div>border</div>
+        <div class="border-onoff">
+          <label>
+            <input name="border-switch-top" type="checkbox"></input>
+            top
+          </label>
+          <div class="centered">
+            <label>
+              <input name="border-switch-left" type="checkbox"></input>
+              left
+            </label>
+              <label>
+                <input name="border-switch-all" type="checkbox"></input>
+                all
+              </label>
+              <label>
+                <input name="border-switch-right" type="checkbox"></input>
+                right
+              </label>
+          </div>
+          <label>
+            <input name="border-switch-bottom" type="checkbox"></input>
+            bottom
+          </label>
+        </div>
+      `,
+        },
       ],
     });
   }
@@ -127,9 +145,11 @@ export default class PanelManager extends BaseModule {
   openPanel() {
     this.previewUpdate();
     this.dependencies.Ui.openPanel(this.width);
+  }
+
+  updateInputBar() {
     const rgbaTool = document.querySelector(".palette");
     if (rgbaTool) {
-      this.logger.log(rgbaTool);
       const r = rgbaTool.querySelector('[name="r"]') as HTMLInputElement;
       const g = rgbaTool.querySelector('[name="g"]') as HTMLInputElement;
       const b = rgbaTool.querySelector('[name="b"]') as HTMLInputElement;
@@ -181,6 +201,19 @@ export default class PanelManager extends BaseModule {
     this.previewColor = this.parseHexToRGBA(initialColor);
   }
 
+  parseHexToRGB(hex: string) {
+    const [r, g, b] = hex
+      .slice(1)
+      .replace(/\B(?=(.{2})+(?!.))/g, " ")
+      .split(" ");
+    return {
+      r: parseInt(r, 16),
+      g: parseInt(g, 16),
+      b: parseInt(b, 16),
+      a: 255,
+    };
+  }
+
   parseHexToRGBA(hex: string) {
     const [r, g, b, a] = hex
       .slice(1)
@@ -202,6 +235,7 @@ export default class PanelManager extends BaseModule {
     previewColor.style.boxShadow =
       "inset 0 0 0 99999999999px" + this.getBackgroundColor();
     // this.logger.log("hex", previewColor.style.backgroundColor);
+    this.updateInputBar();
   }
 
   getBackgroundColor() {

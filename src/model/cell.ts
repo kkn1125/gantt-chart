@@ -1,5 +1,5 @@
 import Logger from "@/module/logger";
-import { createEl } from "@/util/global";
+import { VALUE, createEl } from "@/util/global";
 
 export default class Cell {
   logger: Logger;
@@ -31,7 +31,7 @@ export default class Cell {
       this.x = x;
       this.y = y;
       this.type = type;
-      this.content = content;
+      this.content = content || VALUE.DEFAULT_CELL_CONTENT;
       this.style = style;
       this.option = option;
       this.posX = posX;
@@ -47,9 +47,7 @@ export default class Cell {
       this.posX = 0;
       this.posY = 0;
 
-      if (content) {
-        this.content = content;
-      }
+      this.content = content || VALUE.DEFAULT_CELL_CONTENT;
     }
   }
 

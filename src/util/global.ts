@@ -18,6 +18,12 @@ export const MESSAGE = {
   NO_SELECTED_CELL: "선택한 셀이 없습니다!",
   CANT_CONCAT: "thead와 tbody는 함께 혼합 할 수 없습니다.",
   CANT_SPLIT: "thead와 tbody는 함께 분해 할 수 없습니다.",
+  REMOVE_COLUMN_DENIED: "열은 최소 1개가 존재해야합니다.",
+  REMOVE_ROW_DENIED: "행은 최소 1개가 존재해야합니다.",
 } as const;
 type MESSAGE = (typeof MESSAGE)[keyof typeof MESSAGE];
+export const VALUE = {
+  DEFAULT_CELL_CONTENT: "",
+} as const;
+type VALUE = (typeof VALUE)[keyof typeof VALUE];
 export { packageJson };

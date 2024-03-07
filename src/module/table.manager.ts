@@ -3,6 +3,7 @@ import BaseModule from "@/module/base.module";
 import { MESSAGE, WRAP_SHEETS } from "@/util/global";
 
 export default class TableManager extends BaseModule {
+  copyCell: Cell | null = null;
   selected: Cell[] = [];
   options: Partial<CSSStyleDeclaration> = {
     tableLayout: "auto",
@@ -44,6 +45,16 @@ export default class TableManager extends BaseModule {
     this.uploadSelected();
     this.setupHeads();
     this.setupBodies();
+  }
+
+  selectAllCells() {
+    this.selected = [];
+    this.head
+      .flat(1)
+      .concat(this.body.flat(1))
+      .forEach((cell) => {
+        this.selectCell(cell);
+      });
   }
 
   selectCell(cell: Cell) {
@@ -264,10 +275,10 @@ export default class TableManager extends BaseModule {
 
   addColumn(index: number) {
     this.head.forEach((head, y) => {
-      head.splice(index, 0, new Cell(index, y, "th", "add"));
+      head.splice(index, 0, new Cell(index, y, "th"));
     });
     this.body.forEach((body, y) => {
-      body.splice(index, 0, new Cell(index, y, "td", "add"));
+      body.splice(index, 0, new Cell(index, y, "td"));
     });
     this.sortingPosition();
     this.saveTable();
@@ -276,10 +287,10 @@ export default class TableManager extends BaseModule {
 
   addBeforeColumn() {
     this.head.forEach((head, y) => {
-      head.unshift(new Cell(0, y, "th", "before"));
+      head.unshift(new Cell(0, y, "th"));
     });
     this.body.forEach((body, y) => {
-      body.unshift(new Cell(0, y, "td", "before"));
+      body.unshift(new Cell(0, y, "td"));
     });
     this.sortingPosition();
     this.saveTable();
@@ -288,10 +299,10 @@ export default class TableManager extends BaseModule {
 
   addAfterColumn() {
     this.head.forEach((head, y) => {
-      head.push(new Cell(head.length, y, "th", "after"));
+      head.push(new Cell(head.length, y, "th"));
     });
     this.body.forEach((body, y) => {
-      body.push(new Cell(body.length, y, "td", "after"));
+      body.push(new Cell(body.length, y, "td"));
     });
     this.sortingPosition();
     this.saveTable();
@@ -340,7 +351,7 @@ export default class TableManager extends BaseModule {
       index,
       0,
       [...new Array(this.head[0].length)].map(
-        (_, i) => new Cell(i, index, "th", "add row head")
+        (_, i) => new Cell(i, index, "th")
       )
     );
   }
@@ -350,7 +361,7 @@ export default class TableManager extends BaseModule {
       index,
       0,
       [...new Array(this.body[0].length)].map(
-        (_, i) => new Cell(i, index, "td", "add row head")
+        (_, i) => new Cell(i, index, "td")
       )
     );
   }
@@ -359,44 +370,115 @@ export default class TableManager extends BaseModule {
     this.head.splice(
       0,
       0,
-      [...new Array(this.head[0].length)].map(
-        (_, i) => new Cell(i, 0, "th", "top")
-      )
+      [...new Array(this.head[0].length)].map((_, i) => new Cell(i, 0, "th"))
     );
     this.sortingPosition();
     this.saveTable();
+    this.update();
   }
 
   addRowHeadBottom() {
     this.head.push(
       [...new Array(this.head[this.head.length - 1].length)].map(
-        (_, i) => new Cell(i, this.head.length, "th", "bottom")
+        (_, i) => new Cell(i, this.head.length, "th")
       )
     );
     this.sortingPosition();
     this.saveTable();
+    this.update();
   }
 
   addRowBodyTop() {
     this.body.splice(
       0,
       0,
-      [...new Array(this.body[0].length)].map(
-        (_, i) => new Cell(i, 0, "td", "top")
-      )
+      [...new Array(this.body[0].length)].map((_, i) => new Cell(i, 0, "td"))
     );
     this.sortingPosition();
     this.saveTable();
+    this.update();
   }
 
   addRowBodyBottom() {
     this.body.push(
       [...new Array(this.body[this.body.length - 1].length)].map(
-        (_, i) => new Cell(i, this.body.length, "td", "bottom")
+        (_, i) => new Cell(i, this.body.length, "td")
       )
     );
     this.sortingPosition();
     this.saveTable();
+    this.update();
+  }
+
+  removeContent() {
+    this.selected.forEach((cell) => {
+      cell.content = "";
+    });
+    this.sortingPosition();
+    this.saveTable();
+    this.update();
+  }
+
+  removeRow() {
+    const deniedMsg = new Set<string>();
+    const rowSet = this.selected.reduce(
+      (acc, cell) => {
+        if (!(cell.type in acc)) {
+          acc[cell.type] = new Set();
+        }
+        acc[cell.type].add(cell.y);
+        return acc;
+      },
+      {} as {
+        [k: string]: Set<number>;
+      }
+    );
+    if ("th" in rowSet) {
+      if (this.head.length > 1) {
+        rowSet.th.forEach((y) => {
+          this.head.splice(y, 1);
+        });
+      } else {
+        deniedMsg.add("헤드");
+      }
+    }
+    if ("td" in rowSet) {
+      if (this.body.length > 1) {
+        rowSet.td.forEach((y) => {
+          this.body.splice(y, 1);
+        });
+      } else {
+        deniedMsg.add("바디");
+      }
+    }
+    if (deniedMsg.size > 0) {
+      alert(`[${[...deniedMsg].join(", ")}]: ` + MESSAGE.REMOVE_COLUMN_DENIED);
+    }
+    this.sortingPosition();
+    this.saveTable();
+    this.update();
+  }
+
+  removeColumn() {
+    const columnSet = this.selected.reduce(
+      (acc, cell) => acc.add(cell.x),
+      new Set<number>()
+    );
+    if (this.head[0].length > 1 && this.body[0].length > 1) {
+      columnSet.forEach((x) => {
+        this.head.forEach((row) => {
+          row.splice(x, 1);
+        });
+        this.body.forEach((row) => {
+          row.splice(x, 1);
+        });
+      });
+    } else {
+      alert(MESSAGE.REMOVE_COLUMN_DENIED);
+    }
+    this.sortingPosition();
+    this.saveTable();
+    this.update();
   }
 
   getSelectedMinCell(): Cell | null {
@@ -494,10 +576,14 @@ export default class TableManager extends BaseModule {
 
   tableLayoutFixed() {
     this.options.tableLayout = "fixed";
+    this.saveTable();
+    this.update();
   }
 
   tableLayoutAuto() {
     this.options.tableLayout = "auto";
+    this.saveTable();
+    this.update();
   }
 
   splitCell() {

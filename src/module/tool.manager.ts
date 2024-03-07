@@ -69,51 +69,49 @@ export default class ToolManager extends BaseModule {
   toolAddColumnBefore(_self: DropdownMenuItem) {
     this.logger.log("add before column");
     this.dependencies.TableManager.addBeforeColumn();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolAddColumnAfter(_self: DropdownMenuItem) {
     this.logger.log("add before column");
     this.dependencies.TableManager.addAfterColumn();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolAddRowHeadTop(_self: DropdownMenuItem) {
     this.logger.log("add after column");
     this.dependencies.TableManager.addRowHeadTop();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolAddRowHeadBottom(_self: DropdownMenuItem) {
     this.logger.log("add after column");
     this.dependencies.TableManager.addRowHeadBottom();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolAddRowBodyTop(_self: DropdownMenuItem) {
     this.logger.log("add after column");
     this.dependencies.TableManager.addRowBodyTop();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolAddRowBodyBottom(_self: DropdownMenuItem) {
     this.logger.log("add after column");
     this.dependencies.TableManager.addRowBodyBottom();
-    this.dependencies.Ui.render();
+    // this.dependencies.Ui.render();
   }
 
   toolTableFixed(self: DropdownMenuItem) {
     if (self.name === "table:fixed") {
       this.dependencies.TableManager.tableLayoutFixed();
-      this.dependencies.TableManager.update();
       this.logger.log("table size fixed");
       self.setName("table:auto");
-      this.dependencies.Ui.render();
+      // this.dependencies.Ui.render();
     } else {
       this.dependencies.TableManager.tableLayoutAuto();
-      this.dependencies.TableManager.update();
       self.setName("table:fixed");
-      this.dependencies.Ui.render();
+      // this.dependencies.Ui.render();
     }
   }
 
