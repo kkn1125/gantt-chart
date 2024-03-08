@@ -133,21 +133,42 @@ export default class EventManager extends BaseModule {
     const target = e.target as HTMLDivElement;
     this.dependencies.Ui.movingDrawDragRect(e);
 
-    if (target.dataset.tool || target.closest("#menu-list")) {
-      this.dependencies.Ui.dropdownHovered = true;
+    if (
+      !target.closest("#menu-list") &&
+      !target.closest("#sub-list") &&
+      this.dependencies.Ui.currentTab !== target.dataset.tool
+    ) {
+      this.dependencies.MenuManager.close();
+      this.dependencies.Ui.closeTabMenu();
     }
 
     if (
-      this.dependencies.Ui.isChangedBeforeTool(
-        (target.dataset.tool || target.dataset.toolItem) as DropdownMenuNames
-      ) &&
+      target.dataset.tool ||
+      target.closest("#menu-list") ||
+      target.closest("#sub-list")
+    ) {
+      if (target.dataset.tool) {
+        this.dependencies.Ui.currentTab = target.dataset.tool;
+      }
+      this.dependencies.Ui.dropdownHovered = true;
+    } else {
+      this.dependencies.Ui.dropdownOpened = false;
+    }
+
+    if (
+      !document.querySelector("#menu-list") &&
+      this.dependencies.Ui.dropdownHovered &&
       this.dependencies.Ui.dropdownOpened
     ) {
-      this.dependencies.Ui.dropdownClose();
-      this.dependencies.Ui.dropdownOpen(
-        // e,
-        (target.dataset.tool || target.dataset.toolItem) as DropdownMenuNames
-      );
+      if (target.dataset.tool !== undefined) {
+        const menu = this.dependencies.MenuManager.findTab(target.dataset.tool);
+        if (menu) {
+          const root = document.querySelector(
+            `[data-tool="${menu.group}"]`
+          ) as HTMLDivElement;
+          this.dependencies.Ui.openTabMenu(menu, root);
+        }
+      }
     }
   }
 
@@ -173,6 +194,110 @@ export default class EventManager extends BaseModule {
       }
     }
     this.dependencies.Ui.endDrawDragRect(e);
+  }
+
+  handleClick(e: MouseEvent) {
+    const target = e.target as HTMLDivElement;
+
+    if (target.dataset.toolName) {
+      const tab = this.dependencies.MenuManager.findTabByName(
+        target.dataset.toolName
+      );
+      this.logger.log(tab, target.dataset.toolName);
+      tab?.feature();
+    }
+
+    this.dependencies.MenuManager.close();
+    this.dependencies.Ui.closeTabMenu();
+    this.dependencies.Ui.dropdownOpened = false;
+
+    if (target.dataset.tool !== undefined) {
+      const menu = this.dependencies.MenuManager.findTab(target.dataset.tool);
+      if (menu) {
+        const root = document.querySelector(
+          `[data-tool="${menu.group}"]`
+        ) as HTMLDivElement;
+        this.dependencies.Ui.openTabMenu(menu, root);
+        this.dependencies.Ui.dropdownOpened = true;
+      }
+    }
+
+    if (target && target.classList.contains("sheet")) {
+      const id = +(target.dataset.sheetId || 0);
+      this.dependencies.TableManager.swapSheet(id);
+    }
+
+    if (target && target.classList.contains("sheet-menu")) {
+      // this.dependencies.ToolManager.addRowHeadTop();
+      const id = +(target.dataset.sheetId as string);
+      const feature = target.dataset.sheetFeat as string;
+      this.dependencies.Ui.runSheetTool(feature, id);
+      this.dependencies.Ui.closeSheetTool();
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.StorageManager.loadStorage();
+      this.dependencies.TableManager.update();
+      this.dependencies.Ui.render();
+    }
+
+    if (target && target.classList.contains("cell")) {
+    } else {
+      if (this.editingEl) {
+        this.removeContentEditableAndSave();
+        this.editingEl.removeEventListener("input", this.handleCellInput);
+      }
+    }
+
+    if (target && !target.closest("#panel")) {
+      if (this.isOpenedPanel()) {
+        this.closePanel();
+      }
+    }
+
+    if (target && target.closest("#panel")) {
+      if ("dir" in target.dataset) {
+        switch (target.dataset.dir) {
+          case "all":
+            this.dependencies.TableManager.concatAll();
+            break;
+          case "split":
+            this.dependencies.TableManager.splitCell();
+            break;
+          default:
+            // none
+            break;
+        }
+      } else if ("cellAdd" in target.dataset) {
+        switch (target.dataset.cellAdd) {
+          case "left":
+            this.dependencies.TableManager.addColumnLeftSide();
+            break;
+          case "right":
+            this.dependencies.TableManager.addColumnRightSide();
+            break;
+          case "top":
+            this.dependencies.TableManager.addRowTop();
+            break;
+          case "bottom":
+            this.dependencies.TableManager.addRowBottom();
+            break;
+        }
+      } else if ("cellRemove" in target.dataset) {
+        switch (target.dataset.cellRemove) {
+          case "row":
+            this.dependencies.TableManager.removeRow();
+            break;
+          case "column":
+            this.dependencies.TableManager.removeColumn();
+            break;
+        }
+      } else if ("cellFeature" in target.dataset) {
+        switch (target.dataset.cellFeature) {
+          case "remove-content":
+            this.dependencies.TableManager.removeContent();
+            break;
+        }
+      }
+    }
   }
 
   handleDoubleClick(e: MouseEvent) {
@@ -271,102 +396,6 @@ export default class EventManager extends BaseModule {
 
       this.dependencies.TableManager.saveTable();
       this.dependencies.TableManager.update();
-    }
-  }
-
-  handleClick(e: MouseEvent) {
-    const target = e.target as HTMLDivElement;
-    if (
-      target.dataset.tool !== undefined &&
-      this.dependencies.Ui.dropdownHovered &&
-      !this.dependencies.Ui.dropdownOpened
-    ) {
-      this.dependencies.Ui.dropdownOpen(
-        // e,
-        target.dataset.tool as DropdownMenuNames
-        // target.dataset.toolItemName as string
-      );
-    } else {
-      this.dependencies.Ui.dropdownClose();
-      if (target.dataset.toolItemName) {
-        this.dependencies.Ui.eventCommit(target.dataset);
-      }
-    }
-
-    if (target && target.classList.contains("sheet")) {
-      const id = +(target.dataset.sheetId || 0);
-      this.dependencies.TableManager.swapSheet(id);
-    }
-
-    if (target && target.classList.contains("sheet-menu")) {
-      // this.dependencies.ToolManager.addRowHeadTop();
-      const id = +(target.dataset.sheetId as string);
-      const feature = target.dataset.sheetFeat as string;
-      this.dependencies.Ui.runSheetTool(feature, id);
-      this.dependencies.Ui.closeSheetTool();
-      this.dependencies.TableManager.saveTable();
-      this.dependencies.StorageManager.loadStorage();
-      this.dependencies.TableManager.update();
-      this.dependencies.Ui.render();
-    }
-
-    if (target && target.classList.contains("cell")) {
-    } else {
-      if (this.editingEl) {
-        this.removeContentEditableAndSave();
-        this.editingEl.removeEventListener("input", this.handleCellInput);
-      }
-    }
-
-    if (target && !target.closest("#panel")) {
-      if (this.isOpenedPanel()) {
-        this.closePanel();
-      }
-    }
-    if (target && target.closest("#panel")) {
-      if ("dir" in target.dataset) {
-        switch (target.dataset.dir) {
-          case "all":
-            this.dependencies.TableManager.concatAll();
-            break;
-          case "split":
-            this.dependencies.TableManager.splitCell();
-            break;
-          default:
-            // none
-            break;
-        }
-      } else if ("cellAdd" in target.dataset) {
-        switch (target.dataset.cellAdd) {
-          case "left":
-            this.dependencies.TableManager.addColumnLeftSide();
-            break;
-          case "right":
-            this.dependencies.TableManager.addColumnRightSide();
-            break;
-          case "top":
-            this.dependencies.TableManager.addRowTop();
-            break;
-          case "bottom":
-            this.dependencies.TableManager.addRowBottom();
-            break;
-        }
-      } else if ("cellRemove" in target.dataset) {
-        switch (target.dataset.cellRemove) {
-          case "row":
-            this.dependencies.TableManager.removeRow();
-            break;
-          case "column":
-            this.dependencies.TableManager.removeColumn();
-            break;
-        }
-      } else if ("cellFeature" in target.dataset) {
-        switch (target.dataset.cellFeature) {
-          case "remove-content":
-            this.dependencies.TableManager.removeContent();
-            break;
-        }
-      }
     }
   }
 }

@@ -64,7 +64,21 @@ body,
 
 body {
   #menu-list {
-    position: absolute;
+    position: fixed;
+    color: #ffffff;
+    background-color: #{$BG_GRAY};
+    .menu-item {
+      color: inherit;
+      font-weight: 700;
+      background-color: inherit;
+      padding: 0.5rem 1rem;
+      min-width: 200px;
+      font-size: 0.75em;
+      @include hover-effect;
+    }
+  }
+  #sub-list {
+    position: fixed;
     color: #ffffff;
     background-color: #{$BG_GRAY};
     .menu-item {

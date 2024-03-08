@@ -9,71 +9,76 @@ export default class MenuManager extends BaseModule {
     super();
   }
 
-  file: DropdownMenuItem[] = [];
-  tool: DropdownMenuItem[] = [];
-  about: DropdownMenuItem[] = [];
+  menulist: DropdownMenuItem[] = [];
 
   initialize() {
-    const fileNewSheet = new MenuManager.Item(
+    const fileTab = new DropdownMenuItem("file", "파일");
+    const fileNewSheet = new DropdownMenuItem(
       "file",
       "New Sheet",
       this.dependencies.ToolManager.fileNewSheet.bind(this)
     );
-    const fileLocalSave = new MenuManager.Item(
+    const fileLocalSave = new DropdownMenuItem(
       "file",
       "Local Save",
       this.dependencies.ToolManager.fileLocalSave.bind(this)
     );
-    const fileSaveAs = new MenuManager.Item(
+    const fileSaveAs = new DropdownMenuItem(
       "file",
       "Save as ...",
       this.dependencies.ToolManager.fileSaveAs.bind(this)
     );
-    const fileClose = new MenuManager.Item(
+    const fileClose = new DropdownMenuItem(
       "file",
       "Close",
       this.dependencies.ToolManager.fileClose.bind(this)
     );
 
-    const toolFullScreen = new MenuManager.Item(
-      "tool",
+    fileTab.addMenuItem(fileNewSheet);
+    fileTab.addMenuItem(fileLocalSave);
+    fileTab.addMenuItem(fileSaveAs);
+    fileTab.addMenuItem(fileClose);
+
+    const toolTab = new DropdownMenuItem("tool", "도구");
+    const toolFullScreen = new DropdownMenuItem(
+      "screen",
       "Full Screen",
       this.dependencies.ToolManager.toolFullScreen.bind(this)
     );
-
-    const toolAddColumnBefore = new MenuManager.Item(
+    const toolAddCell = new DropdownMenuItem("add tool", "add rows, columns");
+    const toolAddColumnBefore = new DropdownMenuItem(
       "tool",
-      "add column: before",
+      "Add column: Before",
       this.dependencies.ToolManager.toolAddColumnBefore.bind(this)
     );
-    const toolAddColumnAfter = new MenuManager.Item(
+    const toolAddColumnAfter = new DropdownMenuItem(
       "tool",
-      "add column: after",
+      "Add column: After",
       this.dependencies.ToolManager.toolAddColumnAfter.bind(this)
     );
-    const toolAddRowHeadTop = new MenuManager.Item(
+    const toolAddRowHeadTop = new DropdownMenuItem(
       "tool",
-      "add row: head top",
+      "Add row: Head top",
       this.dependencies.ToolManager.toolAddRowHeadTop.bind(this)
     );
-    const toolAddRowHeadBottom = new MenuManager.Item(
+    const toolAddRowHeadBottom = new DropdownMenuItem(
       "tool",
-      "add row: head bottom",
+      "Add row: Head bottom",
       this.dependencies.ToolManager.toolAddRowHeadBottom.bind(this)
     );
-    const toolAddRowBodyTop = new MenuManager.Item(
+    const toolAddRowBodyTop = new DropdownMenuItem(
       "tool",
-      "add row: body top",
+      "Add row: Body top",
       this.dependencies.ToolManager.toolAddRowBodyTop.bind(this)
     );
-    const toolAddRowBodyBottom = new MenuManager.Item(
+    const toolAddRowBodyBottom = new DropdownMenuItem(
       "tool",
-      "add row: body bottom",
+      "Add row: Body bottom",
       this.dependencies.ToolManager.toolAddRowBodyBottom.bind(this)
     );
-    const toolTableFix = new MenuManager.Item(
+    const toolTableFix = new DropdownMenuItem(
       "tool",
-      `table:${
+      `Table:${
         this.dependencies.StorageManager.storages.options.tableLayout ===
         "fixed"
           ? "auto"
@@ -81,42 +86,70 @@ export default class MenuManager extends BaseModule {
       }`,
       this.dependencies.ToolManager.toolTableFixed.bind(this)
     );
+    toolAddCell.addMenuItem(toolAddColumnBefore);
+    toolAddCell.addMenuItem(toolAddColumnAfter);
+    toolAddCell.addMenuItem(toolAddRowHeadTop);
+    toolAddCell.addMenuItem(toolAddRowHeadBottom);
+    toolAddCell.addMenuItem(toolAddRowBodyTop);
+    toolAddCell.addMenuItem(toolAddRowBodyBottom);
 
-    const aboutHelper = new MenuManager.Item(
+    toolTab.addMenuItem(toolFullScreen);
+    toolTab.addMenuItem(toolTableFix);
+    toolTab.addSubMenuItem(toolAddCell);
+
+    const aboutTab = new DropdownMenuItem("about", "도움말");
+    const aboutHelper = new DropdownMenuItem(
       "about",
       "도움말",
       this.dependencies.ToolManager.aboutHelper.bind(this)
     );
+    aboutTab.addMenuItem(aboutHelper);
 
-    this.addMenu("file", fileNewSheet);
-    this.addMenu("file", fileLocalSave);
-    this.addMenu("file", fileSaveAs);
-    this.addMenu("file", fileClose);
-
-    this.addMenu("tool", toolFullScreen);
-    this.addMenu("tool", toolAddColumnBefore);
-    this.addMenu("tool", toolAddColumnAfter);
-    this.addMenu("tool", toolAddRowHeadTop);
-    this.addMenu("tool", toolAddRowHeadBottom);
-    this.addMenu("tool", toolAddRowBodyTop);
-    this.addMenu("tool", toolAddRowBodyBottom);
-    this.addMenu("tool", toolTableFix);
-
-    this.addMenu("about", aboutHelper);
+    this.addMenu(fileTab);
+    this.addMenu(toolTab);
+    this.addMenu(aboutTab);
   }
 
-  addMenu(menu: DropdownMenuNames, menuItem: DropdownMenuItem) {
-    this[menu].push(menuItem);
+  addMenu(menuItem: DropdownMenuItem) {
+    this.menulist.push(menuItem);
   }
 
   drawGnb() {
-    MENU.innerHTML = `
-      <div class="tab small fw-bold capitalize" data-tool="file">file</div>
-      <div class="tab small fw-bold capitalize" data-tool="tool">tool</div>
-      <div class="tab small fw-bold capitalize" data-tool="about">about</div>`;
+    MENU.innerHTML = this.menulist
+      .map((menu) => {
+        return `<div class="tab small fw-bold capitalize" data-tool="${menu.group}">${menu.name}</div>`;
+      })
+      .join("");
+  }
+
+  findTabByName(name: string) {
+    for (const menu of this.menulist) {
+      const result = menu.findTabByName(name);
+      if (result) {
+        return result;
+      }
+    }
+    return;
   }
 
   render() {
     this.drawGnb();
+  }
+
+  findTab(tabName: string) {
+    const menu = this.menulist.find((menu) => menu.findTab(tabName));
+    if (menu) {
+      return menu;
+    }
+    return;
+  }
+
+  open(tabName: string) {
+    const menu = this.findTab(tabName);
+    return menu;
+  }
+
+  close() {
+    this.menulist.forEach((menu) => menu.close());
   }
 }

@@ -103,14 +103,14 @@ export default class ToolManager extends BaseModule {
   }
 
   toolTableFixed(self: DropdownMenuItem) {
-    if (self.name === "table:fixed") {
+    if (self.name === "Table:fixed") {
       this.dependencies.TableManager.tableLayoutFixed();
       this.logger.log("table size fixed");
-      self.setName("table:auto");
+      self.setName("Table:auto");
       // this.dependencies.Ui.render();
     } else {
       this.dependencies.TableManager.tableLayoutAuto();
-      self.setName("table:fixed");
+      self.setName("Table:fixed");
       // this.dependencies.Ui.render();
     }
   }

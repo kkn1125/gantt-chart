@@ -1,6 +1,7 @@
 import { BOARD, HEADER, PANEL, SHEET_FILES, packageJson } from "@/util/global";
 import BaseModule from "./base.module";
 import MenuManager from "./menu.manager";
+import DropdownMenuItem from "@/model/dropdown.menu.item";
 
 interface CustomElement extends HTMLDivElement {
   custom: {
@@ -10,6 +11,7 @@ interface CustomElement extends HTMLDivElement {
 }
 
 export default class Ui extends BaseModule {
+  currentTab: string = "";
   dropdowns!: MenuManager;
   currentSheet: number = 0;
   openedTool: string = "";
@@ -32,43 +34,91 @@ export default class Ui extends BaseModule {
     return !!document.querySelector("#menu-list");
   }
 
-  eventCommit(dataset: DOMStringMap) {
-    if (dataset) {
-      this.dropdowns[dataset.toolItem as DropdownMenuNames].forEach(
-        (dropdown) => {
-          if (dropdown.name === dataset.toolItemName) {
-            dropdown.feature();
-          }
+  openTabMenu(
+    menu: DropdownMenuItem,
+    target: HTMLDivElement,
+    isSub: boolean = false
+  ) {
+    const rect = target.getBoundingClientRect();
+    const id = `${isSub ? "sub" : "menu"}-list`;
+    const menuListEl = document.querySelector(id) as HTMLDivElement;
+    const menuList = document.createElement("div");
+    let menuEl: HTMLDivElement;
+    if (menuListEl) {
+      menuEl = menuListEl;
+    } else {
+      menuEl = menuList;
+      menuEl.id = `${isSub ? "sub" : "menu"}-list`;
+    }
+    if (isSub) {
+      menuEl.style.top = rect.top + "px";
+      menuEl.style.left = rect.right + "px";
+    } else {
+      menuEl.style.top = rect.bottom + "px";
+      menuEl.style.left = rect.left + "px";
+    }
+    menuEl.innerHTML = menu.menuItems
+      .map(
+        (menuItem) =>
+          `<div class="menu-item"${
+            menuItem.menuItems.length > 0
+              ? ` data-tool="${menuItem.group}"`
+              : ""
+          }${menuItem.feature ? ` data-tool-name="${menuItem.name}"` : ""}>${
+            menuItem.name
+          }${menuItem.menuItems.length > 0 ? ">>" : ""}</div>`
+      )
+      .join("");
+    document.body.insertAdjacentElement("beforeend", menuEl);
+
+    if (menu.menuItems.length > 0) {
+      menu.menuItems.forEach((sub) => {
+        if (menu.group !== sub.group && sub.isOpen) {
+          const root = menuEl.querySelector(
+            `[data-tool="${sub.group}"]`
+          ) as HTMLDivElement;
+          this.openTabMenu(sub, root, true);
         }
-      );
+      });
     }
   }
 
-  dropdownClose() {
-    document.querySelectorAll("#menu-list").forEach((el) => el.remove());
-    this.dropdownOpened = false;
-  }
+  // eventCommit(dataset: DOMStringMap) {
+  //   if (dataset) {
+  //     this.dropdowns[dataset.toolItem as DropdownMenuNames].forEach(
+  //       (dropdown) => {
+  //         if (dropdown.name === dataset.toolItemName) {
+  //           dropdown.feature();
+  //         }
+  //       }
+  //     );
+  //   }
+  // }
 
-  dropdownOpen(toolName: DropdownMenuNames) {
-    if (!this.dropdownHovered || !toolName) return;
-    const el = document.querySelector(
-      `[data-tool="${toolName}"]`
-    ) as HTMLDivElement;
-    const menuList = this.createEl("div");
-    menuList.id = "menu-list";
-    menuList.innerHTML = `${this.dropdowns[toolName]
-      .map(
-        (dropdown) =>
-          `<div class="menu-item" data-tool-item="${dropdown.group}" data-tool-item-name="${dropdown.name}">${dropdown.name}</div>`
-      )
-      .join("")}`;
-    const rect = el.getBoundingClientRect();
-    menuList.style.top = rect.bottom + "px";
-    menuList.style.left = rect.left + "px";
-    document.body.insertAdjacentElement("beforeend", menuList);
-    this.dropdownOpened = true;
-    this.openedTool = toolName;
-  }
+  // dropdownOpen(toolName: DropdownMenuNames) {
+  //   if (!this.dropdownHovered || !toolName) return;
+  //   const el = document.querySelector(
+  //     `[data-tool="${toolName}"]`
+  //   ) as HTMLDivElement;
+  //   const menuList = this.createEl("div");
+  //   menuList.id = "menu-list";
+  //   menuList.innerHTML = `${this.dropdowns[toolName]
+  //     .map(
+  //       (dropdown) =>
+  //         `<div class="menu-item" data-tool-item="${
+  //           dropdown.group
+  //         }" data-tool-item-name="${dropdown.name}" ${
+  //           dropdown.menuItems.length > 0 ? "submenu" : ""
+  //         }>${dropdown.name}</div>`
+  //     )
+  //     .join("")}`;
+  //   const rect = el.getBoundingClientRect();
+  //   menuList.style.top = rect.bottom + "px";
+  //   menuList.style.left = rect.left + "px";
+  //   document.body.insertAdjacentElement("beforeend", menuList);
+  //   this.dropdownOpened = true;
+  //   this.openedTool = toolName;
+  // }
 
   setupDropdownMenus() {
     this.dropdowns = this.dependencies.MenuManager;
@@ -268,6 +318,16 @@ export default class Ui extends BaseModule {
     this.dependencies.TableManager.update();
     this.drawSheets();
   }
+
+  closeTabMenu() {
+    document.querySelectorAll("#sub-list").forEach((item) => item.remove());
+    document.querySelectorAll("#menu-list").forEach((item) => item.remove());
+  }
+
+  // dropdownClose() {
+  //   document.querySelectorAll("#menu-list").forEach((el) => el.remove());
+  //   this.dropdownOpened = false;
+  // }
 
   drawVersionTag() {
     const versionTag = document.createElement("div");
