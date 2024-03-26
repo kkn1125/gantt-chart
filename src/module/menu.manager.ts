@@ -100,11 +100,10 @@ export default class MenuManager extends BaseModule {
     const aboutTab = new DropdownMenuItem("about", "도움말");
     const aboutHelper = new DropdownMenuItem(
       "about",
-      "도움말",
+      "사용방법",
       this.dependencies.ToolManager.aboutHelper.bind(this)
     );
     aboutTab.addMenuItem(aboutHelper);
-
     this.addMenu(fileTab);
     this.addMenu(toolTab);
     this.addMenu(aboutTab);

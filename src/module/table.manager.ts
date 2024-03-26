@@ -29,7 +29,7 @@ export default class TableManager extends BaseModule {
     this.thead = this.createEl("thead") as HTMLTableSectionElement;
     this.tbody = this.createEl("tbody") as HTMLTableSectionElement;
     this.table.append(this.thead, this.tbody);
-    this.thead.style.cssText = `border-bottom: 3px solid #565656`;
+    // this.thead.style.cssText = `border-bottom: 3px solid #565656`;
 
     Object.entries(this.options).forEach((keyValue) => {
       const [k, v] = keyValue;
@@ -97,8 +97,6 @@ export default class TableManager extends BaseModule {
       }
     });
     this.selected = [];
-    // this.saveTable();
-    // this.update();
   }
 
   private setupHeads() {
@@ -209,7 +207,7 @@ export default class TableManager extends BaseModule {
     }
     this.setupTable();
     this.saveTable();
-    // this.initSelected();
+    this.initSelected();
   }
 
   findCellById(id: number, type: string) {
@@ -249,6 +247,30 @@ export default class TableManager extends BaseModule {
     });
   }
 
+  getColumnBy(xIndex: number) {
+    const temp: Cell[] = [];
+    this.head.forEach((row) => {
+      temp.push(row[xIndex]);
+    });
+    this.body.forEach((row) => {
+      temp.push(row[xIndex]);
+    });
+    return temp;
+  }
+
+  getHeadRowBy(yIndex: number) {
+    const temp: Cell[] = [];
+    temp.push(...this.head[yIndex]);
+    return temp;
+  }
+
+  getBodyRowBy(yIndex: number) {
+    const temp: Cell[] = [];
+    temp.push(...this.body[yIndex]);
+    return temp;
+  }
+
+  /* Add tools */
   addColumnLeftSide() {
     const lastOne = this.selected[this.selected.length - 1];
     if (!lastOne) {
@@ -410,9 +432,19 @@ export default class TableManager extends BaseModule {
     this.update();
   }
 
+  /* Remove tools */
   removeContent() {
     this.selected.forEach((cell) => {
       cell.content = "";
+    });
+    this.sortingPosition();
+    this.saveTable();
+    this.update();
+  }
+
+  removeStyle() {
+    this.selected.forEach((cell) => {
+      cell.style = {};
     });
     this.sortingPosition();
     this.saveTable();
@@ -434,19 +466,27 @@ export default class TableManager extends BaseModule {
       }
     );
     if ("th" in rowSet) {
-      if (this.head.length > 1) {
-        rowSet.th.forEach((y) => {
-          this.head.splice(y, 1);
-        });
+      if (this.head.length > 1 && rowSet.th.size < this.head.length) {
+        const sorted = [...rowSet.th].toSorted((a, b) => a - b);
+        let count = 0;
+        for (const row of sorted) {
+          this.head.splice(row - count, 1);
+          count += 1;
+        }
+        this.logger.check("processed: (deleted header row amount) " + count);
       } else {
         deniedMsg.add("헤드");
       }
     }
     if ("td" in rowSet) {
-      if (this.body.length > 1) {
-        rowSet.td.forEach((y) => {
-          this.body.splice(y, 1);
-        });
+      if (this.body.length > 1 && rowSet.td.size < this.body.length) {
+        const sorted = [...rowSet.td].toSorted((a, b) => a - b);
+        let count = 0;
+        for (const row of sorted) {
+          this.body.splice(row - count, 1);
+          count += 1;
+        }
+        this.logger.check("processed: (deleted body row amount) " + count);
       } else {
         deniedMsg.add("바디");
       }
@@ -481,6 +521,7 @@ export default class TableManager extends BaseModule {
     this.update();
   }
 
+  /* Get tools */
   getSelectedMinCell(): Cell | null {
     let minX = Infinity;
     let minY = Infinity;
@@ -533,6 +574,7 @@ export default class TableManager extends BaseModule {
     return groups;
   }
 
+  /* Cell concat split tools */
   concatAll() {
     const min = this.getSelectedMinCell();
     const max = this.getSelectedMaxCell();
@@ -570,18 +612,6 @@ export default class TableManager extends BaseModule {
       //   rowSpan: row,
       // });
     }
-    this.saveTable();
-    this.update();
-  }
-
-  tableLayoutFixed() {
-    this.options.tableLayout = "fixed";
-    this.saveTable();
-    this.update();
-  }
-
-  tableLayoutAuto() {
-    this.options.tableLayout = "auto";
     this.saveTable();
     this.update();
   }
@@ -627,5 +657,114 @@ export default class TableManager extends BaseModule {
     }
     this.saveTable();
     this.update();
+  }
+
+  /* Table layout tools */
+  tableLayoutFixed() {
+    this.options.tableLayout = "fixed";
+    this.saveTable();
+    this.update();
+  }
+
+  tableLayoutAuto() {
+    this.options.tableLayout = "auto";
+    this.saveTable();
+    this.update();
+  }
+
+  /* Draw border tools */
+  drawBorderTop() {
+    const dir = this.selected.every((cell) => cell.hasBorder("top"));
+    for (const cell of this.selected) {
+      if (dir) {
+        cell.removeStyle("borderTopWidth");
+        cell.removeStyle("borderTopStyle");
+        cell.removeStyle("borderTopColor");
+      } else {
+        cell.style.borderTopWidth = "1px";
+        cell.style.borderTopStyle = "solid";
+        cell.style.borderTopColor = "black";
+      }
+    }
+  }
+  drawBorderBottom() {
+    const dir = this.selected.every((cell) => cell.hasBorder("bottom"));
+    for (const cell of this.selected) {
+      if (dir) {
+        cell.removeStyle("borderBottomWidth");
+        cell.removeStyle("borderBottomStyle");
+        cell.removeStyle("borderBottomColor");
+      } else {
+        cell.style.borderBottomWidth = "1px";
+        cell.style.borderBottomStyle = "solid";
+        cell.style.borderBottomColor = "black";
+      }
+    }
+  }
+  drawBorderLeft() {
+    const dir = this.selected.every((cell) => cell.hasBorder("left"));
+    for (const cell of this.selected) {
+      if (dir) {
+        cell.removeStyle("borderLeftWidth");
+        cell.removeStyle("borderLeftStyle");
+        cell.removeStyle("borderLeftColor");
+      } else {
+        cell.style.borderLeftWidth = "1px";
+        cell.style.borderLeftStyle = "solid";
+        cell.style.borderLeftColor = "black";
+      }
+    }
+  }
+  drawBorderRight() {
+    const dir = this.selected.every((cell) => cell.hasBorder("right"));
+    for (const cell of this.selected) {
+      if (dir) {
+        cell.removeStyle("borderRightWidth");
+        cell.removeStyle("borderRightStyle");
+        cell.removeStyle("borderRightColor");
+      } else {
+        cell.style.borderRightWidth = "1px";
+        cell.style.borderRightStyle = "solid";
+        cell.style.borderRightColor = "black";
+      }
+    }
+  }
+  drawBorderAll() {
+    const dir = this.selected.every(
+      (cell) =>
+        cell.hasBorder("top") &&
+        cell.hasBorder("bottom") &&
+        cell.hasBorder("left") &&
+        cell.hasBorder("right")
+    );
+    for (const cell of this.selected) {
+      if (dir) {
+        cell.removeStyle("borderTopWidth");
+        cell.removeStyle("borderTopStyle");
+        cell.removeStyle("borderTopColor");
+        cell.removeStyle("borderBottomWidth");
+        cell.removeStyle("borderBottomStyle");
+        cell.removeStyle("borderBottomColor");
+        cell.removeStyle("borderLeftWidth");
+        cell.removeStyle("borderLeftStyle");
+        cell.removeStyle("borderLeftColor");
+        cell.removeStyle("borderRightWidth");
+        cell.removeStyle("borderRightStyle");
+        cell.removeStyle("borderRightColor");
+      } else {
+        cell.style.borderTopWidth = "1px";
+        cell.style.borderTopStyle = "solid";
+        cell.style.borderTopColor = "black";
+        cell.style.borderBottomWidth = "1px";
+        cell.style.borderBottomStyle = "solid";
+        cell.style.borderBottomColor = "black";
+        cell.style.borderLeftWidth = "1px";
+        cell.style.borderLeftStyle = "solid";
+        cell.style.borderLeftColor = "black";
+        cell.style.borderRightWidth = "1px";
+        cell.style.borderRightStyle = "solid";
+        cell.style.borderRightColor = "black";
+      }
+    }
   }
 }

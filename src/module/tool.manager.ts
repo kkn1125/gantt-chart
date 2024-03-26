@@ -115,8 +115,9 @@ export default class ToolManager extends BaseModule {
     }
   }
 
-  aboutHelper(_self: DropdownMenuItem) {
+  aboutHelper(self: DropdownMenuItem) {
     this.logger.log("도움말 열기");
+    this.dependencies.Ui.popupAbout();
   }
 
   sheetToolRemove(sheetId: number) {

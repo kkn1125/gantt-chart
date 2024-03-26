@@ -97,4 +97,26 @@ export default class Cell {
 
     return el;
   }
+
+  hasStyle(type: keyof Partial<CSSStyleDeclaration>) {
+    return type in this.style && this.style[type] !== "";
+  }
+
+  hasBorder(direction: string) {
+    const dir = direction[0].toUpperCase() + direction.slice(1);
+    return (
+      this.hasStyle(`border${dir}` as keyof Partial<CSSStyleDeclaration>) ||
+      this.hasStyle(
+        `border${dir}Width` as keyof Partial<CSSStyleDeclaration>
+      ) ||
+      this.hasStyle(
+        `border${dir}Style` as keyof Partial<CSSStyleDeclaration>
+      ) ||
+      this.hasStyle(`border${dir}Color` as keyof Partial<CSSStyleDeclaration>)
+    );
+  }
+
+  removeStyle(style: keyof Partial<CSSStyleDeclaration>) {
+    delete this.style[style];
+  }
 }

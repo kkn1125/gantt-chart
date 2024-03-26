@@ -41,6 +41,7 @@ export default class PanelManager extends BaseModule {
           title: "셀 비우기 옵션",
           panel: `
         <div class="cell-concat-options">
+          <button class="" data-cell-feature="remove-style">스타일 제거</button>
           <button class="" data-cell-feature="remove-content">내용 제거</button>
         </div>
       `,
@@ -75,6 +76,19 @@ export default class PanelManager extends BaseModule {
       `,
         },
         {
+          title: "셀 사이즈 옵션",
+          panel: `
+        <div class="cell-concat-options">
+          <label>width
+            <input name="width" type="number" min="-1" step="0.1" />
+          </label>
+          <label>height
+            <input name="height" type="number" min="-1" step="0.1" />
+          </label>
+        </div>
+      `,
+        },
+        {
           title: "색상 조절",
           panel: `
         <div>preview</div>
@@ -94,25 +108,25 @@ export default class PanelManager extends BaseModule {
         <div>border</div>
         <div class="border-onoff">
           <label>
-            <input name="border-switch-top" type="checkbox"></input>
+            <input name="border-switch-top" data-border-check="top" type="checkbox"></input>
             top
           </label>
           <div class="centered">
             <label>
-              <input name="border-switch-left" type="checkbox"></input>
+              <input name="border-switch-left" data-border-check="left" type="checkbox"></input>
               left
             </label>
               <label>
-                <input name="border-switch-all" type="checkbox"></input>
+                <input name="border-switch-all" data-border-check="all" type="checkbox"></input>
                 all
               </label>
               <label>
-                <input name="border-switch-right" type="checkbox"></input>
+                <input name="border-switch-right" data-border-check="right" type="checkbox"></input>
                 right
               </label>
           </div>
           <label>
-            <input name="border-switch-bottom" type="checkbox"></input>
+            <input name="border-switch-bottom" data-border-check="bottom" type="checkbox"></input>
             bottom
           </label>
         </div>
@@ -178,6 +192,43 @@ export default class PanelManager extends BaseModule {
     PANEL.innerHTML = "";
   }
 
+  /* 셀 사이즈 초기화 */
+  initializeSizeOptions() {
+    const defaultValue = "0px";
+    const cell = this.dependencies.TableManager.selected[0];
+    const widthInput = document.querySelector(
+      "input[name='width']"
+    ) as HTMLInputElement;
+    const heightInput = document.querySelector(
+      "input[name='height']"
+    ) as HTMLInputElement;
+    if (widthInput) {
+      widthInput.value =
+        "" +
+        Number(
+          (
+            "" +
+            (cell.style.width === "auto"
+              ? defaultValue
+              : cell.style.width || defaultValue)
+          )?.match(/[0-9]+/g)?.[0]
+        );
+    }
+    if (heightInput) {
+      heightInput.value =
+        "" +
+        Number(
+          (
+            "" +
+            (cell.style.height === "auto"
+              ? defaultValue
+              : cell.style.height || defaultValue)
+          )?.match(/[0-9]+/g)?.[0]
+        );
+    }
+  }
+
+  /* 셀 컬러 프리뷰 초기화 */
   initializeCellBackgroudColorSet() {
     const defaultColor = "#00000000";
     const cells = this.dependencies.TableManager.selected;
@@ -199,6 +250,72 @@ export default class PanelManager extends BaseModule {
     const initialColor =
       (sorted[0] === defaultColor ? sorted[1] : sorted[0]) || defaultColor;
     this.previewColor = this.parseHexToRGBA(initialColor);
+  }
+
+  initializeCellBorders() {
+    const inputs = document.querySelectorAll(
+      `[name="border-switch-top"],[name="border-switch-bottom"],[name="border-switch-left"],[name="border-switch-right"],[name="border-switch-all"]`
+    ) as unknown as HTMLInputElement[];
+    const dirs = document.querySelectorAll(
+      `[name="border-switch-top"],[name="border-switch-bottom"],[name="border-switch-left"],[name="border-switch-right"]`
+    ) as unknown as HTMLInputElement[];
+    const allInput = document.querySelector(
+      `[name="border-switch-all"]`
+    ) as HTMLInputElement;
+    /* checkbox 초기화 */
+    inputs.forEach((input) => {
+      input.checked = false;
+    });
+
+    const input = (key: string) =>
+      document.querySelector(
+        `[name="border-switch-${key}"]`
+      ) as HTMLInputElement;
+    const cells = this.dependencies.TableManager.selected;
+    const isActivated = {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      all: 0,
+    };
+
+    for (const cell of cells) {
+      const hasTop = cell.hasBorder("top");
+      const hasBottom = cell.hasBorder("bottom");
+      const hasLeft = cell.hasBorder("left");
+      const hasRight = cell.hasBorder("right");
+      const hasAll = hasTop && hasBottom && hasLeft && hasRight;
+
+      if (hasAll) {
+        isActivated.all += 1;
+      }
+      if (hasTop) {
+        isActivated.top += 1;
+      }
+      if (hasBottom) {
+        isActivated.bottom += 1;
+      }
+      if (hasLeft) {
+        isActivated.left += 1;
+      }
+      if (hasRight) {
+        isActivated.right += 1;
+      }
+    }
+    const max = Math.max(...Object.values(isActivated));
+
+    Object.entries(isActivated).forEach(([key, value]) => {
+      if (value > max / 2) {
+        input(key).checked = true;
+      }
+    });
+
+    if ([...dirs].every((dir) => !!dir.checked)) {
+      allInput.checked = true;
+    } else {
+      allInput.checked = false;
+    }
   }
 
   parseHexToRGB(hex: string) {

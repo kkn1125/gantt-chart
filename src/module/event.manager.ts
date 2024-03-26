@@ -38,6 +38,7 @@ export default class EventManager extends BaseModule {
     document.querySelectorAll(`[contenteditable]`).forEach((cell) => {
       cell.removeAttribute("contenteditable");
     });
+    this.editingEl = null;
   }
 
   removeContentEditableAndSave() {
@@ -89,8 +90,10 @@ export default class EventManager extends BaseModule {
       const target = e.target as HTMLTableCellElement;
       if (target && target.classList.contains("cell")) {
         if (!this.isOpenedPanel()) {
-          this.dependencies.PanelManager.initializeCellBackgroudColorSet();
+          this.updatePanel();
           this.openPanel();
+        } else {
+          this.updatePanel();
         }
       }
 
@@ -193,7 +196,16 @@ export default class EventManager extends BaseModule {
         this.initializeSelectedInTableCells();
       }
     }
+
     this.dependencies.Ui.endDrawDragRect(e);
+  }
+
+  updatePanel() {
+    this.dependencies.PanelManager.initializeCellBackgroudColorSet();
+    this.dependencies.PanelManager.previewUpdate();
+    this.dependencies.PanelManager.initializeCellBorders();
+    this.dependencies.PanelManager.initializeSizeOptions();
+    this.dependencies.PanelManager.update();
   }
 
   handleClick(e: MouseEvent) {
@@ -210,6 +222,10 @@ export default class EventManager extends BaseModule {
     this.dependencies.MenuManager.close();
     this.dependencies.Ui.closeTabMenu();
     this.dependencies.Ui.dropdownOpened = false;
+
+    if (target.classList.contains("exit")) {
+      document.querySelectorAll(".about-command").forEach((el) => el?.remove());
+    }
 
     if (target.dataset.tool !== undefined) {
       const menu = this.dependencies.MenuManager.findTab(target.dataset.tool);
@@ -240,6 +256,12 @@ export default class EventManager extends BaseModule {
     }
 
     if (target && target.classList.contains("cell")) {
+      if (this.editingEl && this.editingEl !== target) {
+        this.removeContentEditableAndSave();
+      }
+      if (this.isOpenedPanel()) {
+        this.updatePanel();
+      }
     } else {
       if (this.editingEl) {
         this.removeContentEditableAndSave();
@@ -248,7 +270,10 @@ export default class EventManager extends BaseModule {
     }
 
     if (target && !target.closest("#panel")) {
-      if (this.isOpenedPanel()) {
+      if (
+        this.isOpenedPanel() &&
+        this.dependencies.TableManager.selected.length === 0
+      ) {
         this.closePanel();
       }
     }
@@ -292,10 +317,40 @@ export default class EventManager extends BaseModule {
         }
       } else if ("cellFeature" in target.dataset) {
         switch (target.dataset.cellFeature) {
+          case "remove-style":
+            this.dependencies.TableManager.removeStyle();
+            break;
           case "remove-content":
             this.dependencies.TableManager.removeContent();
             break;
         }
+      } else if ("borderCheck" in target.dataset) {
+        switch (target.dataset.borderCheck) {
+          case "top": {
+            this.dependencies.TableManager.drawBorderTop();
+            break;
+          }
+          case "bottom": {
+            this.dependencies.TableManager.drawBorderBottom();
+            break;
+          }
+          case "left": {
+            this.dependencies.TableManager.drawBorderLeft();
+            break;
+          }
+          case "right": {
+            this.dependencies.TableManager.drawBorderRight();
+            break;
+          }
+          case "all": {
+            this.logger.log("all");
+            this.dependencies.TableManager.drawBorderAll();
+            break;
+          }
+        }
+        this.updatePanel();
+        this.dependencies.TableManager.saveTable();
+        this.dependencies.TableManager.update();
       }
     }
   }
@@ -326,20 +381,20 @@ export default class EventManager extends BaseModule {
   }
 
   handleKeydown(e: KeyboardEvent) {
-    const key = e.key;
+    const key = e.key.toLowerCase();
 
     // if (key === "a") {
     //   this.logger.log(this.dependencies.Ui);
     // }
 
     if (this.editingEl) {
-      if (e.shiftKey && key === "Enter") {
+      if (e.shiftKey && key === "enter") {
+        this.editingEl.removeEventListener("input", this.handleCellInput);
         this.removeContentEditableAndSave();
-        this.editingEl.removeEventListener("input", this.handleCellInput);
       }
-      if (key === "Escape") {
-        this.removeContentEditable();
+      if (key === "escape") {
         this.editingEl.removeEventListener("input", this.handleCellInput);
+        this.removeContentEditable();
         this.dependencies.TableManager.initSelected();
         this.dependencies.TableManager.saveTable();
         this.dependencies.TableManager.update();
@@ -350,9 +405,37 @@ export default class EventManager extends BaseModule {
           this.dependencies.TableManager.selectAllCells();
           this.dependencies.TableManager.highlightSelectedCells();
         }
+
+        /* return and stop feature, if not selected. */
+        if (this.dependencies.TableManager.selected.length === 0) return;
+
+        if (key === "c") {
+          const copyContents = this.dependencies.TableManager.selected
+            .map((cell) => cell.content)
+            .filter((content) => content.trim())
+            .join("\n");
+          navigator.clipboard.writeText(copyContents).then(() => {
+            this.logger.check("completed copied by cells contents.");
+          });
+        }
+        if (key === "v") {
+          navigator.clipboard.readText().then((value) => {
+            this.dependencies.TableManager.selected.forEach((cell) => {
+              cell.content = value;
+            });
+            this.logger.check("paste user's copied text: " + value);
+            this.dependencies.TableManager.saveTable();
+            this.dependencies.TableManager.update();
+          });
+        }
       }
 
-      if (key === "Escape") {
+      if (key === "escape") {
+        /* 도움말 모달 닫기 */
+        document
+          .querySelectorAll(".about-command")
+          .forEach((el) => el?.remove());
+
         if (this.isOpenedPanel()) {
           this.closePanel();
         }
@@ -363,6 +446,14 @@ export default class EventManager extends BaseModule {
           this.dependencies.Ui.closeSubmitRename();
         }
         this.dependencies.TableManager.initSelected();
+        this.dependencies.TableManager.saveTable();
+        this.dependencies.TableManager.update();
+      }
+
+      if (key === "backspace") {
+        this.dependencies.TableManager.selected.forEach((cell) => {
+          cell.content = "";
+        });
         this.dependencies.TableManager.saveTable();
         this.dependencies.TableManager.update();
       }
@@ -394,6 +485,34 @@ export default class EventManager extends BaseModule {
         });
       });
 
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.TableManager.update();
+    }
+    if (target && target.name === "width") {
+      this.dependencies.TableManager.selected
+        .flatMap((cell) => {
+          return this.dependencies.TableManager.getColumnBy(cell.x);
+        })
+        .forEach((cell) => {
+          cell.style.width =
+            target.value === "-1" ? "auto" : target.value + "px";
+        });
+      this.dependencies.TableManager.saveTable();
+      this.dependencies.TableManager.update();
+    }
+    if (target && target.name === "height") {
+      this.dependencies.TableManager.selected
+        .flatMap((cell) => {
+          if (cell.type === "th") {
+            return this.dependencies.TableManager.getHeadRowBy(cell.y);
+          } else {
+            return this.dependencies.TableManager.getBodyRowBy(cell.y);
+          }
+        })
+        .forEach((cell) => {
+          cell.style.height =
+            target.value === "-1" ? "auto" : target.value + "px";
+        });
       this.dependencies.TableManager.saveTable();
       this.dependencies.TableManager.update();
     }
