@@ -115,7 +115,7 @@ export default class ToolManager extends BaseModule {
     }
   }
 
-  aboutHelper(self: DropdownMenuItem) {
+  aboutHelper(_self: DropdownMenuItem) {
     this.logger.log("도움말 열기");
     this.dependencies.Ui.popupAbout();
   }
