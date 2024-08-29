@@ -1,7 +1,12 @@
-import "boxicons";
+import { UI } from "@model/ui/ui";
+import { Logger } from "./util/logger";
+import { EventManager } from "@model/event/event.manager";
 
-import GanttChart from "./core/gantt.chart";
+const logger = new Logger("main");
 
-const gantt = new GanttChart();
-
-gantt.setup();
+function run() {
+  const eventManager = new EventManager();
+  const ui = new UI();
+  ui.render();
+  logger.info("start app");
+}
