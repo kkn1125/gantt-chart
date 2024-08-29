@@ -282,6 +282,10 @@ export default class Ui extends BaseModule {
     });
   }
 
+  isOpenSheetTool() {
+    return document.querySelectorAll("#sheet-tool").length > 0;
+  }
+
   runSheetTool(feature: string, sheetId: number) {
     if (feature === "remove") {
       this.dependencies.ToolManager.sheetToolRemove(sheetId);

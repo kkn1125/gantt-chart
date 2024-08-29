@@ -20,7 +20,7 @@ export default class Sheet {
   constructor(
     data:
       | {
-          id: number;
+          id?: number;
           name: string;
           content: {
             head: Cell[][];
@@ -32,7 +32,7 @@ export default class Sheet {
   constructor(
     data?:
       | {
-          id: number;
+          id?: number;
           name: string;
           content: {
             head: Cell[][];
@@ -44,8 +44,8 @@ export default class Sheet {
     this.logger = new Logger(this.constructor.name);
     if (data) {
       const { id, name, content } = data;
-      Sheet.id = id + 1;
-      this.id = id;
+      Sheet.id = id || 0;
+      this.id = Sheet.id;
       this.name = name;
       this.content.head = content.head.map((row) =>
         row.map((head) => new Cell(head as unknown as CellType))

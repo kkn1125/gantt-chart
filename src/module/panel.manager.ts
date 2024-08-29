@@ -195,6 +195,7 @@ export default class PanelManager extends BaseModule {
   /* 셀 사이즈 초기화 */
   initializeSizeOptions() {
     const defaultValue = "0px";
+    if (this.dependencies.TableManager.selected.length === 0) return;
     const cell = this.dependencies.TableManager.selected[0];
     const widthInput = document.querySelector(
       "input[name='width']"

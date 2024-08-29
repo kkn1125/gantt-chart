@@ -1,6 +1,7 @@
 import DropdownMenuItem from "@/model/dropdown.menu.item";
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
+import Cell from "@/model/cell";
 
 export default class ToolManager extends BaseModule {
   constructor() {
@@ -8,7 +9,15 @@ export default class ToolManager extends BaseModule {
   }
 
   createNewSheet() {
-    this.dependencies.StorageManager.addSheet(new Sheet());
+    this.dependencies.StorageManager.addSheet(
+      new Sheet({
+        name: "sheet01",
+        content: {
+          head: [[new Cell(0, 0, "th", "test")]],
+          body: [[new Cell(0, 0, "td", "test")]],
+        },
+      })
+    );
   }
 
   save() {

@@ -92,6 +92,9 @@ export default class EventManager extends BaseModule {
         if (!this.isOpenedPanel()) {
           this.updatePanel();
           this.openPanel();
+          if (this.dependencies.Ui.isOpenSheetTool()) {
+            this.dependencies.Ui.closeSheetTool();
+          }
         } else {
           this.updatePanel();
         }
@@ -100,6 +103,9 @@ export default class EventManager extends BaseModule {
       if (target && target.classList.contains("sheet")) {
         this.dependencies.Ui.closeSheetTool();
         this.dependencies.Ui.openSheetTool(target as HTMLDivElement);
+        if (this.isOpenedPanel()) {
+          this.closePanel();
+        }
       }
     }
   }
@@ -253,6 +259,10 @@ export default class EventManager extends BaseModule {
       this.dependencies.StorageManager.loadStorage();
       this.dependencies.TableManager.update();
       this.dependencies.Ui.render();
+    }
+
+    if (this.dependencies.Ui.isOpenSheetTool()) {
+      this.dependencies.Ui.closeSheetTool();
     }
 
     if (target && target.classList.contains("cell")) {

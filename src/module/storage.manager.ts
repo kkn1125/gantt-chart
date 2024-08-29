@@ -1,5 +1,6 @@
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
+import Cell from "@/model/cell";
 
 export default class StorageManager extends BaseModule {
   /* private */ readonly STORAGE = "gantt-store";
@@ -41,7 +42,16 @@ export default class StorageManager extends BaseModule {
   initialize() {
     this.logger.process("initialize storage");
     if (this.isEmpty()) {
-      this.addSheet(new Sheet());
+      this.addSheet(
+        new Sheet({
+          id: 1,
+          name: "sheet01",
+          content: {
+            head: [[new Cell(0, 0, "th", "test")]],
+            body: [[new Cell(0, 0, "td", "test")]],
+          },
+        })
+      );
       this.saveStorage();
       this.logger.process("setup empty storage as object");
     }

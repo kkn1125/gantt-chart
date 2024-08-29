@@ -11,15 +11,16 @@
     "deploy": "cd dist/ && git init && git add -A && git commit -m \"gh-pages\" && git push https://github.com/kkn1125/gantt-chart.git master:gh-pages -f"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
+    "@types/node": "^22.5.1",
     "dotenv": "^16.3.1",
     "path": "^0.12.7",
-    "sass": "^1.69.5",
+    "sass": "^1.77.8",
     "terser": "^5.24.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "boxicons": "^2.1.4"
+    "boxicons": "^2.1.4",
+    "gantt-chart": "file:"
   }
 }
