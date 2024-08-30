@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-export class Logger {
+export class Logger<T extends object> {
   private context: string = "LOG";
 
   private levels = ["log", "info", "debug", "warn", "error", "fatal"] as const;
@@ -14,9 +14,9 @@ export class Logger {
 
   constructor();
   constructor(context: string);
-  constructor(context?: string) {
-    context && (this.context = context);
-    this.update();
+  constructor(context: T);
+  constructor(context?: string | T) {
+    if (context) this.setContext(context);
   }
 
   private sign(level: (typeof this.levels)[number]) {
@@ -46,7 +46,7 @@ export class Logger {
           return console.debug.bind(
             self,
             self.sign(level),
-            `[ ${level.toUpperCase()} ]`.padEnd(18 - level.length, " "),
+            `[ ${level.toUpperCase()} ]`,
             `[ ${dayjs(new Date()).format("HH:mm:ss.SSS")} ]`,
             `[ ${self.context.toUpperCase()} ]`,
             " ─── "
@@ -56,8 +56,17 @@ export class Logger {
     }
   }
 
-  public setContext(context: string) {
-    this.context = context;
+  public setContext(): void;
+  public setContext(context: string): void;
+  public setContext(context: T): void;
+  public setContext(context?: string | T) {
+    if (context) {
+      if (typeof context !== "string" && "constructor" in context) {
+        this.context = context.constructor.name as string;
+      } else if (typeof context === "string") {
+        this.context = context;
+      }
+    }
     this.update();
   }
 }
