@@ -1,3 +1,4 @@
+import { select } from "@src/util/select";
 import { IUIModule } from "./IUIModule";
 
 export class UI {
@@ -7,8 +8,15 @@ export class UI {
     this.module = module;
   }
 
+  private render(element: HTMLElement, template: string) {
+    if (element) {
+      element.innerHTML = template;
+    }
+  }
+
   run() {
-    this.module.view();
+    const { target, template } = this.module.view(this);
+    this.render(select(target), template);
   }
   // render(target: string, ui: UI) {
   //   // const el = document.querySelector(target);

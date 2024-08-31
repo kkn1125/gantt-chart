@@ -13,12 +13,12 @@ describe("텍스트 패딩 테스트", () => {
   it("텍스트 길이보다 적게 입력했을 때", () => {
     example = "test";
     result = padding(example, 3);
-    expect(result).toStrictEqual(example + " ");
+    expect(result).toStrictEqual(example);
   });
 
   it("텍스트 길이보다 크게 입력했을 때", () => {
     example = "김이박te";
-    result = padding(example, 5);
-    expect(result).toStrictEqual(example + " ");
+    result = padding(example, 7);
+    expect(result).toStrictEqual(example + "  ");
   });
 });

@@ -1,5 +1,5 @@
 import { Logger } from "./Logger";
 
 export class ILogger {
-  protected readonly logger: Logger = new Logger();
+  protected readonly logger: Logger<this> = new Logger();
 }

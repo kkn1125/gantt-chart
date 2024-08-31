@@ -14,6 +14,7 @@ export default defineConfig({
       reporters: "verbose",
       outputFile: "html",
     },
+    environment: "jsdom",
   },
   resolve: {
     alias: [

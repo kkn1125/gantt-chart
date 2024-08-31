@@ -1,16 +1,26 @@
+import { IUIModule } from "@model/ui/IUIModule";
 import { Branch } from "./Branch";
 import { Foldable } from "./interfaces/Foldable";
 import { Leaf } from "./Leaf";
+import { UI } from "@model/ui/UI";
 
-export class Tree implements Foldable {
+export class Tree implements Foldable, IUIModule {
   private _update: number = 0;
+
+  id = "tree";
   name: string;
 
   items: (Branch | Leaf)[] = [];
   isOpen: boolean = false;
   isRoot: boolean;
 
+  target: SharpText = "#menu-tree";
+  template: string = `
+    test
+  `;
+
   constructor(name: string, isRoot: boolean = false) {
+    this.id = name;
     this.name = name;
     this.isRoot = isRoot;
   }
@@ -21,6 +31,14 @@ export class Tree implements Foldable {
     newTree.items = tree.items;
     newTree.isOpen = tree.isOpen;
     return newTree;
+  }
+
+  setTarget(target: SharpText) {
+    this.target = target;
+  }
+
+  setTemplate(template: string) {
+    this.template = template;
   }
 
   update(): Tree {
@@ -50,5 +68,32 @@ export class Tree implements Foldable {
 
   close(): void {
     this.isOpen = false;
+  }
+
+  view(ui: UI) {
+    const handleOnce = (e: MouseEvent) => {
+      if (
+        e.target &&
+        e.target instanceof HTMLElement &&
+        e.target.id === this.id
+      ) {
+        this.toggleOpen();
+        window.removeEventListener("click", handleOnce);
+        ui.run();
+      }
+    };
+    window.addEventListener("click", handleOnce);
+    this.setTemplate(`<div>
+        <div id="${this.id}">${this.name}</div>
+        ${
+          this.isOpen
+            ? this.items.map((item) => `<div id=${item.id}>${item.name}</div>`)
+            : ""
+        }
+      </div>`);
+    return {
+      target: this.target,
+      template: this.template,
+    };
   }
 }

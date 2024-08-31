@@ -16,7 +16,7 @@ export class Logger<T extends object> {
   constructor(context: string);
   constructor(context: T);
   constructor(context?: string | T) {
-    if (context) this.setContext(context);
+    this.setContext(context as string & T);
   }
 
   private sign(level: (typeof this.levels)[number]) {
