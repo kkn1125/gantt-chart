@@ -57,8 +57,13 @@ export default class ToolManager extends BaseModule {
     this.dependencies.TableManager.saveTable();
   }
 
-  fileSaveAs(_self: DropdownMenuItem) {
+  fileSaveAsHTML(_self: DropdownMenuItem) {
     this.logger.log("save as new filename");
+    this.dependencies.TableManager.exportHTML();
+  }
+
+  fileSaveAsBackup(_self: DropdownMenuItem) {
+    this.logger.log("save as backup");
   }
 
   fileClose(_self: DropdownMenuItem) {

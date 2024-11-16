@@ -23,20 +23,30 @@ export default class MenuManager extends BaseModule {
       "Local Save",
       this.dependencies.ToolManager.fileLocalSave.bind(this)
     );
-    const fileSaveAs = new DropdownMenuItem(
-      "file",
-      "Save as ...",
-      this.dependencies.ToolManager.fileSaveAs.bind(this)
-    );
+    const fileSaveAs = new DropdownMenuItem("saveas", "Save as ...");
     const fileClose = new DropdownMenuItem(
       "file",
       "Close",
       this.dependencies.ToolManager.fileClose.bind(this)
     );
 
+    const fileSaveAsHTML = new DropdownMenuItem(
+      "file",
+      "Save as HTML",
+      this.dependencies.ToolManager.fileSaveAsHTML.bind(this)
+    );
+    const fileSaveAsBackup = new DropdownMenuItem(
+      "file",
+      "Save as Backup",
+      this.dependencies.ToolManager.fileSaveAsBackup.bind(this)
+    );
+
+    fileSaveAs.addMenuItem(fileSaveAsHTML);
+    fileSaveAs.addMenuItem(fileSaveAsBackup);
+
     fileTab.addMenuItem(fileNewSheet);
     fileTab.addMenuItem(fileLocalSave);
-    fileTab.addMenuItem(fileSaveAs);
+    fileTab.addSubMenuItem(fileSaveAs);
     fileTab.addMenuItem(fileClose);
 
     const toolTab = new DropdownMenuItem("tool", "도구");

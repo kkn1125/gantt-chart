@@ -767,4 +767,18 @@ export default class TableManager extends BaseModule {
       }
     }
   }
+
+  /* 내보내기 메서드 */
+  exportHTML() {
+    const blob = new Blob([this.table.outerHTML], { type: "text/html" });
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = "gantt-chart.html";
+    a.hidden = true;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 }
