@@ -323,6 +323,9 @@ export default class Ui extends BaseModule {
       <button type="submit">change</button>
     `;
     document.body.append(renameWindow);
+
+    /* 포커스 추가 2025-02-06 22:08:35 */
+    renameWindow.querySelector("input")?.focus();
   }
 
   closeSubmitRename() {
@@ -371,7 +374,13 @@ export default class Ui extends BaseModule {
             ctrl + c : (셀 선택한 경우에만) 내용 전체 복사 (각 셀은 줄바꿈으로 복사됩니다.)
           </div>
           <div>
+            ctrl + shift + c : (셀 선택한 경우에만) 내용 전체 복사 및 스타일 복사 (처음 선택된 셀의 스타일에 영향을 받습니다.)
+          </div>
+          <div>
             ctrl + v : (셀 선택한 경우에만) 내용 붙여넣기
+          </div>
+          <div>
+            ctrl + shift + v : (셀 선택한 경우에만) 내용 붙여넣기 및 스타일 붙여넣기
           </div>
           <div>
             BackSpace : (셀 선택한 경우에만) 내용 전체 지우기

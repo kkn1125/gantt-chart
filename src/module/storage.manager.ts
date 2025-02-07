@@ -7,6 +7,8 @@ export default class StorageManager extends BaseModule {
 
   sheetNumber: number = 0;
 
+  copyStyle: Partial<CSSStyleDeclaration> = {};
+
   storages: {
     sheets: Sheet[];
     options: Partial<CSSStyleDeclaration>;
@@ -107,8 +109,13 @@ export default class StorageManager extends BaseModule {
     this.saveStorage();
   }
 
-  addSheet(data: Sheet) {
-    this.storages.sheets.push(new Sheet(data));
+  addSheet(data: Pick<Sheet, "id" | "name" | "content">) {
+    if (data.id) {
+      this.storages.sheets.push(new Sheet(data));
+    } else {
+      data.id = ++Sheet.id;
+      this.storages.sheets.push(new Sheet(data));
+    }
     this.saveStorage();
   }
 

@@ -219,16 +219,16 @@ body {
             border-bottom-left-radius: 0.3rem;
             border-bottom-right-radius: 0.3rem;
 
+            @include transition(150ms ease-in-out);
+            @include hover-effect(#{$BG_GRAY}56);
+
             &[current-sheet] {
               background-color: coral;
             }
 
-            @include transition(150ms ease-in-out);
-
             &:not(:last-of-type) {
               border-right: none;
             }
-            @include hover-effect(#{$BG_GRAY}56);
           }
         }
       }

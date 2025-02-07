@@ -427,6 +427,16 @@ export default class EventManager extends BaseModule {
           navigator.clipboard.writeText(copyContents).then(() => {
             this.logger.check("completed copied by cells contents.");
           });
+          if (e.shiftKey) {
+            e.preventDefault();
+            const cell = this.dependencies.TableManager.selected[0];
+            if (cell) {
+              this.dependencies.StorageManager.copyStyle = Object.assign(
+                Object.create({}),
+                cell.style
+              );
+            }
+          }
         }
         if (key === "v") {
           navigator.clipboard.readText().then((value) => {
@@ -437,6 +447,14 @@ export default class EventManager extends BaseModule {
             this.dependencies.TableManager.saveTable();
             this.dependencies.TableManager.update();
           });
+          if (e.shiftKey) {
+            this.dependencies.TableManager.selected.forEach((cell) => {
+              cell.style = Object.assign(
+                Object.create({}),
+                this.dependencies.StorageManager.copyStyle
+              );
+            });
+          }
         }
       }
 

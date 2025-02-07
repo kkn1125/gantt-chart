@@ -2,6 +2,8 @@ import DropdownMenuItem from "@/model/dropdown.menu.item";
 import Sheet from "@/model/sheet";
 import BaseModule from "./base.module";
 import Cell from "@/model/cell";
+import { findEmptyNumbers } from "@/util/findEmptyNumbers";
+import { getNumberBySheetName } from "@/util/getNumberBySheetName";
 
 export default class ToolManager extends BaseModule {
   constructor() {
@@ -9,9 +11,25 @@ export default class ToolManager extends BaseModule {
   }
 
   createNewSheet() {
+    const sheetNames = this.dependencies.StorageManager.storages.sheets
+      .reduce<string[]>((acc, cur) => {
+        if (cur.name.match(/^sheet/) && !acc.includes(cur.name)) {
+          acc.push(cur.name);
+        }
+        return acc;
+      }, [])
+      .toSorted((a, b) => (a > b ? 1 : -1));
+
+    const emptyNumbers = findEmptyNumbers(sheetNames);
+    const nextNumber =
+      emptyNumbers.shift() ||
+      getNumberBySheetName(sheetNames[sheetNames.length - 1]) + 1;
+    const nextSheetName = `sheet${nextNumber.toString().padStart(2, "0")}`;
+
     this.dependencies.StorageManager.addSheet(
       new Sheet({
-        name: "sheet01",
+        id: ++Sheet.id,
+        name: nextSheetName,
         content: {
           head: [[new Cell(0, 0, "th", "test")]],
           body: [[new Cell(0, 0, "td", "test")]],
@@ -145,6 +163,7 @@ export default class ToolManager extends BaseModule {
   sheetToolMoveLeft(sheetId: number) {
     this.dependencies.StorageManager.moveSheet(sheetId, -1);
   }
+
   sheetToolMoveRight(sheetId: number) {
     this.dependencies.StorageManager.moveSheet(sheetId, 1);
   }
