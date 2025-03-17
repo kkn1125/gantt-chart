@@ -304,9 +304,9 @@ export default class Ui extends BaseModule {
       const title = document.createElement("div");
       title.innerText = "안내";
       title.style.fontSize = "1.2rem";
-      title.style.fongWeight = 700;
+      title.style.fontWeight = "700";
       const content = document.createElement("div");
-      content.innerText = "삭제하시면 복구 불가합니다. 진행하시겠습니까?";
+      content.innerText = message;
       const confirmButton = document.createElement("button");
       const cancelButton = document.createElement("button");
       confirmButton.classList.add("sheet-menu");
@@ -346,7 +346,9 @@ export default class Ui extends BaseModule {
 
   async runSheetTool(feature: string, sheetId: number) {
     if (feature === "remove") {
-      if (await this.popupModal("삭제하시겠습니까? 복구 불가합니다.")) {
+      if (
+        await this.popupModal("삭제하시면 복구 불가합니다. 진행하시겠습니까?")
+      ) {
         this.dependencies.ToolManager.sheetToolRemove(sheetId);
       }
     } else if (feature === "rename") {

@@ -1,14 +1,14 @@
 export function CookieManager() {
   const cookie = document.cookie;
-  function setCookie(key, value) {
+  function setCookie(key: string, value: any) {
     const cookies = getCookies();
     cookies[key] = value;
     document.cookie = Object.entries(cookies)
       .map((item) => item.join("="))
       .join("; ");
   }
-  function getCookie(key) {
-    return getCookies[key];
+  function getCookie(key: string) {
+    return getCookies()[key];
   }
   function getCookies() {
     return Object.fromEntries(
@@ -17,5 +17,7 @@ export function CookieManager() {
   }
   return {
     setCookie,
+    getCookie,
+    getCookies,
   };
 }

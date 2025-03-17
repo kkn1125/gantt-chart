@@ -3,7 +3,7 @@ import PanelManager from "./panel.manager";
 
 export default class EventManager extends BaseModule {
   // dbClick: { el?: HTMLElement; gap?: number } = {};
-  editingEl: HTMLTableCellElement | null = null;
+  editingEl: HTMLElement | HTMLTableCellElement | null = null;
 
   constructor() {
     super();
@@ -38,7 +38,7 @@ export default class EventManager extends BaseModule {
     document.querySelectorAll(`[contenteditable]`).forEach((cell) => {
       cell.removeAttribute("contenteditable");
     });
-    this.editingEl.removeEventListener("input", this.handleCellInput);
+    this.editingEl?.removeEventListener("input", this.handleCellInput);
     this.editingEl = null;
   }
 
@@ -371,7 +371,7 @@ export default class EventManager extends BaseModule {
     const selection = window.getSelection() as Selection;
     selection.selectAllChildren(target);
 
-    this.editingEl.addEventListener("input", this.handleCellInput);
+    this.editingEl?.addEventListener("input", this.handleCellInput);
   }
 
   handleDoubleClick(e: MouseEvent) {
@@ -415,39 +415,47 @@ export default class EventManager extends BaseModule {
         e.preventDefault();
         if (e.shiftKey) {
           const tableLocate =
-            this.editingEl.parentElement.parentElement.parentElement;
+            this.editingEl?.parentElement?.parentElement?.parentElement;
 
           if (!tableLocate) return;
-
-          const id = +this.editingEl.getAttribute("data-id") - 1;
+          const dataId = this.editingEl?.getAttribute("data-id");
+          if (!dataId) return;
+          const id = +dataId - 1;
           const nextId = id;
-          let nextEditEl = tableLocate.querySelector(`[data-id="${nextId}"]`);
+          let nextEditEl: HTMLTableCellElement | null =
+            tableLocate.querySelector(`[data-id="${nextId}"]`) ?? null;
           if (!nextEditEl) {
-            nextEditEl = [
-              ...tableLocate.querySelectorAll(
-                ":is(thead,tbody):last-child td:last-child"
-              ),
-            ].pop();
+            nextEditEl =
+              ([
+                ...tableLocate.querySelectorAll(
+                  ":is(thead,tbody):last-child td:last-child"
+                ),
+              ].pop() as HTMLTableCellElement) ?? null;
           }
           this.removeContentEditable();
-          this.editingEl = nextEditEl;
-
-          this.makeEditable(this.editingEl);
+          this.editingEl = nextEditEl ?? null;
+          if (this.editingEl) {
+            this.makeEditable(this.editingEl);
+          }
         } else {
           const tableLocate =
-            this.editingEl.parentElement.parentElement.parentElement;
+            this.editingEl?.parentElement?.parentElement?.parentElement;
 
           if (!tableLocate) return;
-          const id = +this.editingEl.getAttribute("data-id") + 1;
+          const dataId = this.editingEl?.getAttribute("data-id");
+          if (!dataId) return;
+          const id = +dataId + 1;
           const nextId = id;
-          let nextEditEl = tableLocate.querySelector(`[data-id="${nextId}"]`);
+          let nextEditEl: HTMLTableCellElement | null =
+            tableLocate.querySelector(`[data-id="${nextId}"]`) ?? null;
           if (!nextEditEl) {
             nextEditEl = tableLocate.querySelector('[data-id="0"]');
           }
           this.removeContentEditable();
-          this.editingEl = nextEditEl;
-
-          this.makeEditable(this.editingEl);
+          this.editingEl = nextEditEl ?? null;
+          if (this.editingEl) {
+            this.makeEditable(this.editingEl);
+          }
         }
       }
     } else {
