@@ -286,9 +286,69 @@ export default class Ui extends BaseModule {
     return document.querySelectorAll("#sheet-tool").length > 0;
   }
 
-  runSheetTool(feature: string, sheetId: number) {
+  popupModal(message: string) {
+    return new Promise((resolve) => {
+      const modal = document.createElement("div");
+      modal.id = "modal";
+      modal.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        box-shadow: 0 0 1rem 0 #56565656;
+      `;
+      const title = document.createElement("div");
+      title.innerText = "안내";
+      title.style.fontSize = "1.2rem";
+      title.style.fongWeight = 700;
+      const content = document.createElement("div");
+      content.innerText = "삭제하시면 복구 불가합니다. 진행하시겠습니까?";
+      const confirmButton = document.createElement("button");
+      const cancelButton = document.createElement("button");
+      confirmButton.classList.add("sheet-menu");
+      cancelButton.classList.add("sheet-menu");
+      confirmButton.innerText = "확인";
+      cancelButton.innerText = "취소";
+
+      const buttonGroup = document.createElement("div");
+      buttonGroup.style.cssText = `
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+      `;
+      buttonGroup.append(confirmButton, cancelButton);
+      modal.append(content, buttonGroup);
+
+      confirmButton.addEventListener(
+        "click",
+        () => {
+          modal.remove();
+          resolve(true);
+        },
+        { once: true }
+      );
+      cancelButton.addEventListener(
+        "click",
+        () => {
+          modal.remove();
+          resolve(false);
+        },
+        { once: true }
+      );
+      document.body.append(modal);
+    });
+  }
+
+  async runSheetTool(feature: string, sheetId: number) {
     if (feature === "remove") {
-      this.dependencies.ToolManager.sheetToolRemove(sheetId);
+      if (await this.popupModal("삭제하시겠습니까? 복구 불가합니다.")) {
+        this.dependencies.ToolManager.sheetToolRemove(sheetId);
+      }
     } else if (feature === "rename") {
       this.popupRename((rename: string) => {
         this.dependencies.ToolManager.sheetToolRename(sheetId, rename);
@@ -368,25 +428,31 @@ export default class Ui extends BaseModule {
         </div>  
         <div class="about-body">
           <div>
-            ctrl + a : 전체 선택
+            Ctrl + a : 전체 선택
           </div>
           <div>
-            ctrl + c : (셀 선택한 경우에만) 내용 전체 복사 (각 셀은 줄바꿈으로 복사됩니다.)
+            Ctrl + c : (셀 선택한 경우에만) 내용 전체 복사 (각 셀은 줄바꿈으로 복사됩니다.)
           </div>
           <div>
-            ctrl + shift + c : (셀 선택한 경우에만) 내용 전체 복사 및 스타일 복사 (처음 선택된 셀의 스타일에 영향을 받습니다.)
+            Ctrl + Shift + c : (셀 선택한 경우에만) 내용 전체 복사 및 스타일 복사 (처음 선택된 셀의 스타일에 영향을 받습니다.)
           </div>
           <div>
-            ctrl + v : (셀 선택한 경우에만) 내용 붙여넣기
+            Ctrl + v : (셀 선택한 경우에만) 내용 붙여넣기
           </div>
           <div>
-            ctrl + shift + v : (셀 선택한 경우에만) 내용 붙여넣기 및 스타일 붙여넣기
+            Ctrl + Shift + v : (셀 선택한 경우에만) 내용 붙여넣기 및 스타일 붙여넣기
           </div>
           <div>
             BackSpace : (셀 선택한 경우에만) 내용 전체 지우기
           </div>
           <div>
             셀 더블클릭 : 내용 편집 모드
+          </div>
+          <div>
+            탭 키 : 내용 편집 모드에서 탭 키를 누르면 다음 셀로 이동합니다. 우측 마지막 셀에서 탭 키를 누르면 다음 줄의 첫 셀로 이동하며, 최하단 마지막 셀에서는 최상단의 첫번째 셀로 이동합니다.
+          </div>
+          <div>
+            Shift + 탭 키 : 내용 편집 모드에서 탭 키를 누르면 이전 셀로 이동합니다. 좌측 첫 셀에서 탭 키를 누르면 이전 줄의 마지막 셀로 이동하며, 최상단 첫번째 셀에서는 최하단의 마지막 셀로 이동합니다.
           </div>
           <div>
             셀 드래그 : 셀 범위 선택
@@ -410,3 +476,4 @@ declare global {
     renameForm: HTMLFormElement;
   }
 }
+// const cookieManager = CookieManager();

@@ -38,6 +38,7 @@ export default class EventManager extends BaseModule {
     document.querySelectorAll(`[contenteditable]`).forEach((cell) => {
       cell.removeAttribute("contenteditable");
     });
+    this.editingEl.removeEventListener("input", this.handleCellInput);
     this.editingEl = null;
   }
 
@@ -202,7 +203,9 @@ export default class EventManager extends BaseModule {
         this.initializeSelectedInTableCells();
       }
     }
-
+    if (this.isOpenedPanel()) {
+      this.updatePanel();
+    }
     this.dependencies.Ui.endDrawDragRect(e);
   }
 
@@ -268,9 +271,6 @@ export default class EventManager extends BaseModule {
     if (target && target.classList.contains("cell")) {
       if (this.editingEl && this.editingEl !== target) {
         this.removeContentEditableAndSave();
-      }
-      if (this.isOpenedPanel()) {
-        this.updatePanel();
       }
     } else {
       if (this.editingEl) {
@@ -365,17 +365,20 @@ export default class EventManager extends BaseModule {
     }
   }
 
+  makeEditable(target: HTMLElement) {
+    target.contentEditable = "true";
+    target.focus();
+    const selection = window.getSelection() as Selection;
+    selection.selectAllChildren(target);
+
+    this.editingEl.addEventListener("input", this.handleCellInput);
+  }
+
   handleDoubleClick(e: MouseEvent) {
     const target = e.target as HTMLTableCellElement;
     if (target.classList.contains("cell")) {
       this.editingEl = target;
-
-      target.contentEditable = "true";
-      target.focus();
-      const selection = window.getSelection() as Selection;
-      selection.selectAllChildren(target);
-
-      this.editingEl.addEventListener("input", this.handleCellInput);
+      this.makeEditable(this.editingEl);
     }
   }
 
@@ -399,15 +402,53 @@ export default class EventManager extends BaseModule {
 
     if (this.editingEl) {
       if (e.shiftKey && key === "enter") {
-        this.editingEl.removeEventListener("input", this.handleCellInput);
         this.removeContentEditableAndSave();
       }
       if (key === "escape") {
-        this.editingEl.removeEventListener("input", this.handleCellInput);
         this.removeContentEditable();
         this.dependencies.TableManager.initSelected();
         this.dependencies.TableManager.saveTable();
         this.dependencies.TableManager.update();
+      }
+
+      if (key === "tab") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          const tableLocate =
+            this.editingEl.parentElement.parentElement.parentElement;
+
+          if (!tableLocate) return;
+
+          const id = +this.editingEl.getAttribute("data-id") - 1;
+          const nextId = id;
+          let nextEditEl = tableLocate.querySelector(`[data-id="${nextId}"]`);
+          if (!nextEditEl) {
+            nextEditEl = [
+              ...tableLocate.querySelectorAll(
+                ":is(thead,tbody):last-child td:last-child"
+              ),
+            ].pop();
+          }
+          this.removeContentEditable();
+          this.editingEl = nextEditEl;
+
+          this.makeEditable(this.editingEl);
+        } else {
+          const tableLocate =
+            this.editingEl.parentElement.parentElement.parentElement;
+
+          if (!tableLocate) return;
+          const id = +this.editingEl.getAttribute("data-id") + 1;
+          const nextId = id;
+          let nextEditEl = tableLocate.querySelector(`[data-id="${nextId}"]`);
+          if (!nextEditEl) {
+            nextEditEl = tableLocate.querySelector('[data-id="0"]');
+          }
+          this.removeContentEditable();
+          this.editingEl = nextEditEl;
+
+          this.makeEditable(this.editingEl);
+        }
       }
     } else {
       if (e.ctrlKey) {
